@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Device {
+  device_id         String                           @id @db.VarChar
+  device_type       Unsupported("device_type_enum")?
+  location          String?                          @db.VarChar
+  description       String?
+  name              String?
+  tuya_measurements tuya_measurements[]
+
+  @@map("devices")
+}
+
+model scada_measurements {
+  datetime   DateTime @db.Timestamp(6)
+  location   String   @db.VarChar
+  t_amb      Float?
+  t_ref      Float?
+  t_sup_prim Float?
+  t_ret_prim Float?
+  t_sup_sec  Float?
+  t_ret_sec  Float?
+  e          Float?
+  pe         Float?
+
+  @@id([datetime, location])
+}
+
+model thermionyx_measurements {
+  datetime          DateTime @db.Timestamp(6)
+  device_id         Int
+  probe_id          Int
+  temperature       Float?
+  relative_humidity Float?
+  co2               Float?
+
+  @@id([datetime, device_id, probe_id])
+}
+
+model tuya_measurements {
+  datetime       DateTime @db.Timestamp(6)
+  location       String?  @db.VarChar
+  device_id      String   @db.VarChar
+  co2_value      Int?
+  temp_current   Int?
+  humidity_value Int?
+  voc_value      Int?
+  ch2o_value     Int?
+  co2_state      String?  @db.VarChar
+  devices        Device   @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_device")
+
+  @@id([datetime, device_id])
+}
+
+model weatherlink_measurements {
+  datetime              DateTime  @db.Timestamp(6)
+  location              String    @default("WeatherStation1") @db.VarChar
+  bar_trend             Int?
+  bar                   Float?
+  temp_in               Float?
+  hum_in                Int?
+  temp_out              Float?
+  wind_speed            Float?
+  wind_speed_10_min_avg Float?
+  wind_dir              Int?
+  hum_out               Int?
+  rain_rate_mm          Float?
+  uv                    Float?
+  solar_rad             Float?
+  rain_storm_mm         Float?
+  rain_storm_start_date DateTime? @db.Timestamp(6)
+  rain_day_mm           Float?
+  rain_month_mm         Float?
+  rain_year_mm          Float?
+  et_day                Float?
+  et_month              Float?
+  et_year               Float?
+  wet_leaf_4            Int?
+  forecast_rule         Int?
+  forecast_desc         String?
+  dew_point             Int?
+  heat_index            Float?
+  wind_chill            Float?
+  wind_gust_10_min      Float?
+
+  @@id([datetime, location])
+}
