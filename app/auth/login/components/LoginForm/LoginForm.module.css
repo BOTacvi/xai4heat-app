@@ -1,0 +1,27 @@
+.form {
+  @apply flex flex-col gap-4;
+}
+
+.errorBanner {
+  @apply p-3 bg-red-50 border border-red-200 rounded-lg;
+  @apply text-sm text-red-700;
+}
+
+.forgotPassword {
+  @apply text-right;
+}
+
+.footer {
+  @apply flex justify-center items-center gap-2;
+  @apply pt-4 border-t border-gray-200;
+  @apply text-sm;
+}
+
+.footerText {
+  @apply text-gray-600;
+}
+
+.link {
+  @apply text-blue-600 hover:text-blue-700 underline;
+  @apply transition-colors duration-200;
+}

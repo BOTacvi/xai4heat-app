@@ -1,0 +1,35 @@
+.container {
+  @apply space-y-6;
+}
+
+.subtitle {
+  @apply text-2xl font-semibold text-gray-900 mb-2;
+}
+
+.description {
+  @apply text-gray-600 mb-6;
+}
+
+.currentSettings {
+  @apply bg-gray-50 rounded-lg p-4 mb-6;
+}
+
+.sectionTitle {
+  @apply text-lg font-medium text-gray-900 mb-3;
+}
+
+.settingGrid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.settingItem {
+  @apply flex flex-col gap-1;
+}
+
+.label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.value {
+  @apply text-base text-gray-900;
+}

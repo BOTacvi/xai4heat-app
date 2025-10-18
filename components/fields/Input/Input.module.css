@@ -1,0 +1,64 @@
+/**
+ * Input Styles
+ */
+
+.wrapper {
+  @apply flex flex-col gap-1.5;
+}
+
+.fullWidth {
+  @apply w-full;
+}
+
+.label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.required {
+  @apply ml-1 text-red-500;
+}
+
+.inputContainer {
+  @apply relative;
+}
+
+.input {
+  @apply w-full px-3 py-2 text-base;
+  @apply border border-gray-300 rounded-lg;
+  @apply bg-white text-gray-900;
+  @apply transition-colors duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  @apply disabled:bg-gray-100 disabled:cursor-not-allowed;
+}
+
+.input.withIcon {
+  @apply pl-10;
+}
+
+.input.error {
+  @apply border-red-500;
+  @apply focus:ring-red-500;
+}
+
+.icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2;
+  @apply text-gray-400;
+  @apply pointer-events-none;
+}
+
+.errorText {
+  @apply text-sm text-red-600;
+}
+
+.helperText {
+  @apply text-sm text-gray-500;
+}
+
+/* Hover states - complex enough to warrant CSS */
+.input:not(:disabled):hover {
+  @apply border-gray-400;
+}
+
+.input.error:not(:disabled):hover {
+  @apply border-red-600;
+}

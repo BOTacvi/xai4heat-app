@@ -1,0 +1,11 @@
+body {
+  @apply bg-gray-50 min-h-screen flex flex-col; /* full height, slightly dirty white so white cards go above */
+}
+
+.thermionix-layout-container {
+  @apply flex flex-1;
+
+  main {
+    @apply flex flex-col p-12;
+  }
+}

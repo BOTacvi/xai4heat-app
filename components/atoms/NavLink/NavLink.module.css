@@ -1,0 +1,17 @@
+/**
+ * NavLink Styles
+ *
+ * NAMING CONVENTION: Classes use kebab-case matching component name
+ * Main container: .nav-link
+ */
+
+.navLink {
+  @apply block px-4 py-2 rounded-lg;
+  @apply text-gray-700 hover:bg-gray-100;
+  @apply transition-colors duration-200;
+  @apply no-underline;
+}
+
+.active {
+  @apply bg-blue-50 text-blue-600;
+}

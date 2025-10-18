@@ -1,0 +1,23 @@
+.container {
+  @apply p-6 max-w-4xl mx-auto;
+}
+
+.title {
+  @apply text-3xl font-bold text-gray-900 mb-6;
+}
+
+.nav {
+  @apply flex gap-4 border-b border-gray-200 mb-6;
+}
+
+.navLink {
+  @apply px-4 py-2 text-gray-600 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition-colors;
+}
+
+.navLink:global(.active) {
+  @apply text-blue-600 border-blue-600;
+}
+
+.content {
+  @apply bg-white rounded-xl shadow-sm p-6;
+}

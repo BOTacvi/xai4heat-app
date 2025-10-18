@@ -1,0 +1,47 @@
+/**
+ * AppSettingsForm Styles
+ *
+ * LAYOUT:
+ * - Form sections with clear visual separation
+ * - Two-column grid for min/max fields
+ * - Responsive: stacks on mobile
+ */
+
+.form {
+  @apply bg-white rounded-lg border border-gray-200 p-6;
+  @apply mt-6;
+}
+
+.formTitle {
+  @apply text-lg font-semibold text-gray-900 mb-4;
+}
+
+.errorBanner {
+  @apply bg-red-50 border border-red-200 text-red-800;
+  @apply px-4 py-3 rounded-lg mb-4;
+}
+
+.successBanner {
+  @apply bg-green-50 border border-green-200 text-green-800;
+  @apply px-4 py-3 rounded-lg mb-4;
+}
+
+.section {
+  @apply mb-6 pb-6 border-b border-gray-200;
+}
+
+.section:last-of-type {
+  @apply border-b-0 pb-0;
+}
+
+.sectionTitle {
+  @apply text-base font-medium text-gray-900 mb-1;
+}
+
+.sectionDescription {
+  @apply text-sm text-gray-600 mb-4;
+}
+
+.fieldRow {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}

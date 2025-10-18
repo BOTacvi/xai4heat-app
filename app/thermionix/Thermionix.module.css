@@ -1,0 +1,11 @@
+.container {
+  @apply p-6;
+}
+
+.title {
+  @apply text-3xl font-bold text-gray-900 mb-2;
+}
+
+.subtitle {
+  @apply text-gray-600 mb-6;
+}

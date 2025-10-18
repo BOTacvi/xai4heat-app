@@ -1,0 +1,33 @@
+/**
+ * GlobalHeader Styles
+ *
+ * NAMING CONVENTION: Classes use kebab-case matching component name
+ * Main container: .global-header
+ *
+ * LAYOUT:
+ * - Flexbox horizontal layout with space-between
+ * - Left side: title + user email
+ * - Right side: logout button
+ */
+
+.globalHeader {
+  @apply flex items-center justify-between px-6 py-3;
+  @apply border-b border-gray-200;
+}
+
+.left {
+  @apply flex items-center gap-4;
+}
+
+.title {
+  @apply text-xl font-semibold text-gray-900;
+}
+
+.userEmail {
+  @apply text-sm text-gray-600;
+}
+
+.logoutButton {
+  /* Button component handles most styling via variant="secondary" */
+  /* This class allows parent-specific overrides if needed */
+}

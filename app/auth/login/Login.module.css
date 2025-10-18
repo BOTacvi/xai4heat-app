@@ -1,0 +1,27 @@
+/**
+ * Login Page Styles
+ */
+
+.container {
+  @apply min-h-screen flex items-center justify-center;
+  @apply bg-gradient-to-br from-blue-50 to-indigo-100;
+  @apply p-4;
+}
+
+.card {
+  @apply w-full max-w-md;
+  @apply bg-white rounded-2xl shadow-xl;
+  @apply p-8;
+}
+
+.header {
+  @apply mb-8 text-center;
+}
+
+.title {
+  @apply text-3xl font-bold text-gray-900 mb-2;
+}
+
+.subtitle {
+  @apply text-gray-600;
+}

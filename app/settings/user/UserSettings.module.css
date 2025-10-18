@@ -1,0 +1,11 @@
+.container {
+  @apply space-y-6;
+}
+
+.subtitle {
+  @apply text-2xl font-semibold text-gray-900 mb-2;
+}
+
+.description {
+  @apply text-gray-600 mb-6;
+}
