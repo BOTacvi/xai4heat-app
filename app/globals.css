@@ -6,40 +6,133 @@
   display: none !important;
 }
 
-.thermionix-white-contianer {
-  background-color: var(--bg-white);
-  padding: 1.25rem;
+@layer base {
+  /* Light theme (default) */
+  :root {
+    /* Primary colors */
+    --primary-color: #16a34a; /* green-600 */
+    --primary-foreground: #ffffff;
+    --primary-light: #22c55e; /* green-500 for hover */
+    --primary-dark: #15803d; /* green-700 for pressed */
+
+    /* Secondary (transparent green) */
+    --secondary-color: rgba(22, 163, 74, 0.15);
+    --secondary-hover: rgba(22, 163, 74, 0.25);
+
+    /* Background colors */
+    --bg-app: #f7f7f5; /* dirty white - main app background */
+    --bg-card: #ffffff; /* white - cards background */
+    --bg-nav: #ffffff; /* white - navigation background */
+
+    /* Text colors */
+    --text-primary: #171717; /* neutral-900 */
+    --text-secondary: #525252; /* neutral-600 */
+    --text-muted: #737373; /* neutral-500 */
+
+    /* Status colors */
+    --error-color: #e53935;
+    --error-bg: rgba(229, 57, 53, 0.1);
+
+    --warning-color: #ff9800;
+    --warning-bg: rgba(255, 152, 0, 0.1);
+
+    --success-color: #4caf50;
+    --success-bg: rgba(76, 175, 80, 0.1);
+
+    --info-color: #2196f3;
+    --info-bg: rgba(33, 150, 243, 0.1);
+  }
+
+  /* Dark theme */
+  .dark {
+    /* Primary colors (slightly desaturated) */
+    --primary-color: #22c55e; /* green-500 - brighter for dark mode */
+    --primary-foreground: #ffffff;
+    --primary-light: #4ade80; /* green-400 for hover */
+    --primary-dark: #16a34a; /* green-600 for pressed */
+
+    /* Secondary (transparent green) */
+    --secondary-color: rgba(34, 197, 94, 0.15);
+    --secondary-hover: rgba(34, 197, 94, 0.25);
+
+    /* Background colors */
+    --bg-app: #1b1b1b; /* very dark grey - main app background */
+    --bg-card: #000000; /* pure black - cards, navigation, header background */
+    --bg-nav: #000000; /* pure black - navigation background */
+
+    /* Text colors */
+    --text-primary: #ffffff; /* pure white for better contrast on black */
+    --text-secondary: #d4d4d4; /* neutral-300 */
+    --text-muted: #a3a3a3; /* neutral-400 */
+
+    /* Status colors (slightly adjusted for dark mode) */
+    --error-color: #ef4444;
+    --error-bg: rgba(239, 68, 68, 0.15);
+
+    --warning-color: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.15);
+
+    --success-color: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.15);
+
+    --info-color: #3b82f6;
+    --info-bg: rgba(59, 130, 246, 0.15);
+  }
 }
 
-:root {
-  /* Colors */
-  --primary-color: #00a76f;
-  --secondary-color: rgba(0, 167, 111, 0.2);
-
-  --error-color: #e53935;
-  --error-bg: rgba(229, 57, 53, 0.1);
-
-  --warning-color: #ff9800;
-  --warning-bg: rgba(255, 152, 0, 0.1);
-
-  --success-color: #4caf50;
-  --success-bg: rgba(76, 175, 80, 0.1);
-
-  --info-color: #2196f3;
-  --info-bg: rgba(33, 150, 243, 0.1);
-
-  /* Backgrounds */
-  --bg-white: #ffffff;
-  --bg-dirty-white: #f8f8f8; /* slightly gray for “floating” cards */
+@layer base {
+  /* Apply background to body */
+  body {
+    @apply bg-background-light dark:bg-background-dark;
+    @apply text-neutral-900 dark:text-neutral-50;
+    @apply transition-colors duration-200;
+  }
 }
 
-[data-theme="dark"] {
-  --bg-white: #1f1f1f;
-  --bg-dirty-white: #2c2c2c;
-  --primary-color: #00a76f; /* can stay same or adjust for dark mode */
-  --secondary-color: rgba(0, 167, 111, 0.2); /* tweak if needed */
-  --error-bg: rgba(229, 57, 53, 0.2);
-  --warning-bg: rgba(255, 152, 0, 0.2);
-  --success-bg: rgba(76, 175, 80, 0.2);
-  --info-bg: rgba(33, 150, 243, 0.2);
+/* Toast Notification Styles */
+/* Using colors from Tailwind config via CSS variables */
+/* This ensures toast colors update when tailwind.config.js changes */
+
+[data-sonner-toast][data-type="success"],
+[data-sonner-toast][data-type="success"] [data-content] {
+  background-color: var(--success-color) !important;
+  color: white !important;
+  border-color: var(--success-color) !important;
+}
+
+[data-sonner-toast][data-type="error"],
+[data-sonner-toast][data-type="error"] [data-content] {
+  background-color: var(--error-color) !important;
+  color: white !important;
+  border-color: var(--error-color) !important;
+}
+
+[data-sonner-toast][data-type="info"],
+[data-sonner-toast][data-type="info"] [data-content] {
+  background-color: var(--info-color) !important;
+  color: white !important;
+  border-color: var(--info-color) !important;
+}
+
+[data-sonner-toast][data-type="warning"],
+[data-sonner-toast][data-type="warning"] [data-content] {
+  background-color: var(--warning-color) !important;
+  color: white !important;
+  border-color: var(--warning-color) !important;
+}
+
+/* react-hot-toast specific selectors */
+.react-hot-toast > div[role="status"] {
+  background-color: var(--success-color) !important;
+  color: white !important;
+}
+
+.react-hot-toast > div[role="alert"] {
+  background-color: var(--error-color) !important;
+  color: white !important;
+}
+
+/* Icon colors for react-hot-toast */
+.react-hot-toast svg {
+  color: white !important;
 }

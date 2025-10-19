@@ -1,0 +1,60 @@
+/**
+ * Dashboard Homepage Styles
+ *
+ * DESIGN:
+ * - 4 floating cards in 2x2 grid
+ * - White cards in light mode, pure black in dark mode
+ * - NO borders
+ * - Subtle shadows for elevation
+ * - Primary green icons and hover states
+ * - White text in dark mode for high contrast
+ * - 2rem gap between cards (gap-8)
+ */
+
+.container {
+  @apply w-full;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem; /* 2rem gap between cards */
+}
+
+.card {
+  @apply flex flex-col items-center justify-center;
+  @apply p-8;
+  @apply rounded-lg;
+  @apply shadow-md;
+  @apply transition-all duration-200;
+  @apply no-underline;
+  min-height: 200px;
+  /* Use explicit colors instead of theme tokens in @apply */
+  background-color: #ffffff;
+}
+
+:global(.dark) .card {
+  background-color: #000000;
+}
+
+.card:hover {
+  @apply shadow-lg;
+  @apply scale-105;
+}
+
+.icon {
+  @apply text-primary;
+  @apply mb-4;
+}
+
+.cardTitle {
+  @apply text-xl font-semibold;
+  @apply text-neutral-900;
+  @apply m-0;
+}
+
+:global(.dark) .cardTitle {
+  color: #ffffff;
+}

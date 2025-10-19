@@ -22,10 +22,10 @@
 
 'use client'
 
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import toast from 'react-hot-toast'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { Input } from '@/components/fields/Input'
 import { Button } from '@/components/atoms/Button'
@@ -74,8 +74,7 @@ type AppSettingsFormProps = {
 
 export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSettings }) => {
   const { refreshSettings } = useAuth()
-  const [apiError, setApiError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  // REFACTOR: Removed apiError and successMessage states - now using toast notifications
 
   const {
     register,
@@ -104,9 +103,6 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
    * 7. Show success message
    */
   const onSubmit = async (data: AppSettingsFormData) => {
-    setApiError(null)
-    setSuccessMessage(null)
-
     try {
       // STEP 1: Send PUT request to API
       // COMMENT: No userId needed - API reads from session
@@ -128,14 +124,13 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
       await refreshSettings()
 
       // STEP 3: Show success message
-      setSuccessMessage('Settings updated successfully!')
-
-      // COMMENT: Auto-hide success message after 3 seconds
-      setTimeout(() => setSuccessMessage(null), 3000)
+      // REFACTOR: Show success toast instead of inline banner
+      toast.success('Settings updated successfully!')
 
     } catch (err: any) {
       console.error('Error updating settings:', err)
-      setApiError(err.message || 'An error occurred while updating settings')
+      // REFACTOR: Display API error via toast instead of inline banner
+      toast.error(err.message || 'An error occurred while updating settings')
     }
   }
 
@@ -143,19 +138,7 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <h3 className={styles.formTitle}>Update Settings</h3>
 
-      {/* API Error Banner */}
-      {apiError && (
-        <div className={styles.errorBanner} role="alert">
-          {apiError}
-        </div>
-      )}
-
-      {/* Success Banner */}
-      {successMessage && (
-        <div className={styles.successBanner} role="status">
-          {successMessage}
-        </div>
-      )}
+      {/* REFACTOR: Removed inline success/error banners - now using toast notifications */}
 
       {/* Temperature Settings */}
       <div className={styles.section}>

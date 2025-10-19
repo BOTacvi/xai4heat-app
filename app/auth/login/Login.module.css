@@ -1,16 +1,24 @@
 /**
  * Login Page Styles
+ *
+ * DESIGN:
+ * - Theme-aware backgrounds
+ * - Card with theme colors
+ * - Dark mode support
  */
 
 .container {
   @apply min-h-screen flex items-center justify-center;
-  @apply bg-gradient-to-br from-blue-50 to-indigo-100;
+  @apply bg-background-light dark:bg-background-dark;
+  @apply transition-colors duration-200;
   @apply p-4;
 }
 
 .card {
   @apply w-full max-w-md;
-  @apply bg-white rounded-2xl shadow-xl;
+  @apply bg-background-light-card dark:bg-background-dark-card;
+  @apply rounded-2xl shadow-xl;
+  @apply transition-colors duration-200;
   @apply p-8;
 }
 
@@ -19,9 +27,9 @@
 }
 
 .title {
-  @apply text-3xl font-bold text-gray-900 mb-2;
+  @apply text-3xl font-bold text-neutral-900 dark:text-neutral-50 mb-2;
 }
 
 .subtitle {
-  @apply text-gray-600;
+  @apply text-neutral-600 dark:text-neutral-400;
 }

@@ -19,6 +19,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabaseClient'
 import { forgotPasswordSchema, ForgotPasswordFormData } from '@/lib/validations/auth'
 import { Input } from '@/components/fields/Input'
@@ -41,7 +42,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ classNam
     mode: 'onBlur',
   })
 
-  const [apiError, setApiError] = useState<string | null>(null)
+  // REFACTOR: Removed apiError state - now using toast notifications
   const [success, setSuccess] = useState(false)
 
   /**
@@ -58,8 +59,6 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ classNam
    * Step 3-5 will be handled by /auth/reset-password page
    */
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    setApiError(null)
-
     try {
       // COMMENT: Send password reset email
       // redirectTo specifies where user lands after clicking email link
@@ -76,7 +75,8 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ classNam
 
     } catch (err: any) {
       console.error('Password reset error:', err)
-      setApiError(err.message || 'An error occurred')
+      // REFACTOR: Display API error via toast instead of inline banner
+      toast.error(err.message || 'An error occurred')
     }
   }
 
@@ -105,11 +105,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ classNam
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={formClasses}>
-      {apiError && (
-        <div className={styles.errorBanner} role="alert">
-          {apiError}
-        </div>
-      )}
+      {/* REFACTOR: Removed inline error banner - now using toast notifications */}
 
       <Input
         label="Email"

@@ -1,75 +1,49 @@
 /**
- * Homepage - Landing Page
+ * Root Page - Redirect Logic Only
  *
- * LEARNING: This is the root page of the application (/)
+ * LEARNING: Why a redirect-only root page?
  *
- * ARCHITECTURE:
- * - Server Component (can fetch data, check auth on server)
- * - Redirects authenticated users to Thermionix monitoring
- * - Shows welcome screen for unauthenticated users
+ * PROBLEM:
+ * - Root / is neither auth page nor dashboard page
+ * - Showing content here is confusing (is user logged in or not?)
+ * - Need clear separation: auth pages vs dashboard pages
  *
- * WHY THIS APPROACH:
- * - Authenticated users don't need a landing page, go straight to app
- * - Non-authenticated users see a clean welcome screen with login link
- * - All logic server-side = fast, SEO-friendly
+ * SOLUTION:
+ * - Root page just decides where to send user
+ * - If authenticated → /dashboard (homepage with 4 cards)
+ * - If not authenticated → /auth/login
+ * - No UI needed - just redirect
+ *
+ * BENEFITS:
+ * - Clear separation of concerns
+ * - No ambiguous "landing page"
+ * - User always lands in correct place for their auth state
+ * - Middleware will also catch and redirect (defense in depth)
  */
 
-import Link from "next/link";
-import styles from "./page.module.css";
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/supabase/server'
+import { AUTH_ROUTES, DASHBOARD_ROUTES } from '@/lib/constants/routes'
 
-export default async function Home() {
-  // COMMENT: User commented out auth check to always show landing page
-  // Original code checked if user was logged in and redirected to /thermionix
-  // Now the landing page is always visible
+type RootPageProps = {}
 
-  // COMMENT: Show welcome screen for non-authenticated users
-  return (
-    <div className={styles.container}>
-      <main className={styles.main}>
-        <div className={styles.hero}>
-          <h1 className={styles.title}>
-            Welcome to <span className={styles.brand}>Thermionix</span>
-          </h1>
+const RootPage: React.FC<RootPageProps> = async () => {
+  // STEP 1: Check if user is authenticated
+  const user = await getCurrentUser()
 
-          <p className={styles.description}>
-            Monitor temperature, pressure, and environmental data from your
-            apartment sensors in real-time.
-          </p>
+  // STEP 2: Redirect based on auth state
+  // REFACTOR: Use centralized route constants instead of hardcoded paths
+  if (user) {
+    // COMMENT: User is logged in → send to dashboard homepage
+    redirect(DASHBOARD_ROUTES.HOME)
+  } else {
+    // COMMENT: User is not logged in → send to login page
+    redirect(AUTH_ROUTES.LOGIN)
+  }
 
-          <div className={styles.features}>
-            <div className={styles.feature}>
-              <h3 className={styles.featureTitle}>Real-Time Monitoring</h3>
-              <p className={styles.featureText}>
-                Track temperature and pressure data as it happens with live
-                updates.
-              </p>
-            </div>
-
-            <div className={styles.feature}>
-              <h3 className={styles.featureTitle}>SCADA Integration</h3>
-              <p className={styles.featureText}>
-                View aggregated data from entire building complexes (lamelas).
-              </p>
-            </div>
-
-            <div className={styles.feature}>
-              <h3 className={styles.featureTitle}>Weather Data</h3>
-              <p className={styles.featureText}>
-                Compare indoor conditions with outside temperature and weather.
-              </p>
-            </div>
-          </div>
-
-          <div className={styles.actions}>
-            <Link href="/auth/login" className={styles.loginButton}>
-              Log In
-            </Link>
-            <Link href="/auth/signup" className={styles.signupButton}>
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+  // COMMENT: This return is never reached (redirect throws)
+  // But TypeScript requires it for the function signature
+  return null
 }
+
+export default RootPage

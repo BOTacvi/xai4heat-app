@@ -39,6 +39,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { AUTH_ROUTES, DASHBOARD_ROUTES } from '@/lib/constants/routes'
 
 /**
  * Middleware function
@@ -92,28 +93,39 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // STEP 4: Define route rules
-  // COMMENT: Arrays make it easy to add/remove protected routes
-  // All auth routes are under /auth now
-  const publicRoutes = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password']
-  const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
-  const isProtectedRoute = !isPublicRoute && path !== '/'
+  // COMMENT: New structure with /dashboard/* for authenticated routes
+  //
+  // PUBLIC ROUTES:
+  // - / (root) - handled by page.tsx redirect logic
+  // - /auth/* - login, signup, forgot-password, reset-password
+  //
+  // PROTECTED ROUTES:
+  // - /dashboard/* - all authenticated pages
+  const isAuthRoute = path.startsWith('/auth')
+  const isDashboardRoute = path.startsWith('/dashboard')
+  const isRootRoute = path === '/'
 
   // STEP 5: Apply auth logic
 
-  // If user is authenticated and trying to access auth pages, redirect to app
-  // EXAMPLE: User is logged in but goes to /auth/login → redirect to /thermionix
-  if (user && isPublicRoute) {
-    return NextResponse.redirect(new URL('/thermionix', request.url))
+  // If user is authenticated and trying to access auth pages, redirect to dashboard
+  // EXAMPLE: User is logged in but goes to /auth/login → redirect to /dashboard
+  // REFACTOR: Use centralized route constant instead of hardcoded path
+  if (user && isAuthRoute) {
+    return NextResponse.redirect(new URL(DASHBOARD_ROUTES.HOME, request.url))
   }
 
   // If user is NOT authenticated and trying to access protected route, redirect to login
-  // EXAMPLE: User not logged in tries to access /thermionix → redirect to /auth/login
-  if (!user && isProtectedRoute) {
+  // EXAMPLE: User not logged in tries to access /dashboard/thermionix → redirect to /auth/login
+  // REFACTOR: Use centralized route constant instead of hardcoded path
+  if (!user && isDashboardRoute) {
     // LEARNING: Preserve the original URL so we can redirect back after login
-    const redirectUrl = new URL('/auth/login', request.url)
+    const redirectUrl = new URL(AUTH_ROUTES.LOGIN, request.url)
     redirectUrl.searchParams.set('redirectTo', path)
     return NextResponse.redirect(redirectUrl)
   }
+
+  // COMMENT: Root route (/) is handled by page.tsx redirect logic
+  // Middleware doesn't need to redirect root - just let it through
 
   // STEP 6: Allow request to continue
   // COMMENT: User has correct permissions, let them through

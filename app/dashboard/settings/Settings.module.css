@@ -1,0 +1,64 @@
+/**
+ * Settings Layout Styles
+ *
+ * DESIGN:
+ * - Two stacked cards with gap-8 between them
+ * - Top card: Navigation tabs (white/black background)
+ * - Bottom card: Content area (white/black background)
+ * - NO "Settings" heading
+ * - NO borders, only subtle shadows
+ * - Primary green for active tab
+ * - White text in dark mode for high contrast
+ */
+
+.container {
+  @apply flex flex-col;
+  @apply gap-8; /* 2rem gap between cards */
+  @apply w-full;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Top Card - Navigation Tabs */
+.navCard {
+  @apply flex gap-2;
+  @apply rounded-lg shadow-md;
+  @apply p-4;
+  @apply transition-colors duration-200;
+  background-color: #ffffff;
+}
+
+:global(.dark) .navCard {
+  background-color: #000000;
+}
+
+.navLink {
+  @apply px-6 py-3;
+  @apply text-neutral-700;
+  @apply hover:text-primary hover:bg-secondary;
+  @apply rounded-lg;
+  @apply transition-all duration-200;
+  @apply font-medium;
+  @apply no-underline;
+}
+
+:global(.dark) .navLink {
+  color: #ffffff;
+}
+
+.navLink:global(.active) {
+  @apply bg-primary text-primary-foreground;
+  @apply hover:bg-primary-dark;
+}
+
+/* Bottom Card - Content */
+.contentCard {
+  @apply rounded-lg shadow-md;
+  @apply p-8;
+  @apply transition-colors duration-200;
+  background-color: #ffffff;
+}
+
+:global(.dark) .contentCard {
+  background-color: #000000;
+}

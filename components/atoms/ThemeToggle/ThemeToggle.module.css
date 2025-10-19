@@ -1,0 +1,30 @@
+/* Theme Toggle Button Styles */
+
+.toggleButton {
+  @apply flex items-center justify-center;
+  @apply w-10 h-10;
+  @apply rounded-lg;
+  @apply transition-all duration-200;
+  @apply border border-transparent;
+
+  /* Light mode styles */
+  @apply bg-transparent hover:bg-secondary;
+  @apply text-neutral-700 hover:text-primary;
+
+  /* Dark mode styles */
+  @apply dark:text-neutral-300 dark:hover:text-primary;
+  @apply dark:hover:bg-secondary;
+}
+
+.toggleButton:focus {
+  @apply outline-none ring-2 ring-primary ring-offset-2;
+  @apply dark:ring-offset-background-dark;
+}
+
+.icon {
+  @apply transition-transform duration-200;
+}
+
+.toggleButton:hover .icon {
+  @apply scale-110;
+}

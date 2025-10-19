@@ -1,129 +1,147 @@
 /**
- * Root Layout - Server Component
+ * Root Layout - Minimal Wrapper
  *
- * LEARNING: Layout vs Page in Next.js App Router
+ * LEARNING: Next.js Nested Layouts
  *
- * LAYOUT:
- * - Wraps multiple pages
- * - Persists across navigation (doesn't remount)
- * - Perfect for: nav bars, providers, global state
- * - Can be Server Component or Client Component
+ * BEFORE (monolithic layout):
+ * - Root layout had navigation, header, auth logic
+ * - Navigation showed even on auth pages
+ * - Hard to have different layouts for different route groups
  *
- * THIS LAYOUT:
- * - Fetches initial user data (server-side)
- * - Passes to AuthProvider (client component)
- * - Wraps entire app in auth context
+ * AFTER (nested layouts):
+ * - Root layout: Minimal - providers, fonts, global styles only
+ * - /auth/layout.tsx: Auth-specific layout (centered forms, no nav)
+ * - /dashboard/layout.tsx: App layout (navigation, header)
  *
- * ARCHITECTURE:
- * RootLayout (Server) → fetches user
- *     ↓
- * AuthProvider (Client) → provides auth state
- *     ↓
- * Pages (Server/Client) → access useAuth()
+ * BENEFITS:
+ * - Clean separation of concerns
+ * - Different layouts for different routes
+ * - No layout flickering on logout
+ * - Easier to maintain and understand
+ *
+ * THIS LAYOUT PROVIDES:
+ * - Font configuration
+ * - Global CSS
+ * - AuthProvider (global auth state)
+ * - HTML/body tags
+ *
+ * THIS LAYOUT DOES NOT:
+ * - Show navigation (that's in /dashboard/layout.tsx)
+ * - Show header (that's in /dashboard/layout.tsx)
+ * - Redirect users (that's in middleware + page-level)
  */
 
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import GlobalNavigation from "@/components/globals/GlobalNavigation";
-import GlobalHeader from "@/components/globals/GlobalHeader";
-import { AuthProvider, AuthRedirect } from "@/lib/contexts/AuthContext";
-import { getCurrentUser } from "@/lib/supabase/server";
+import type { Metadata } from "next"
+import { Geist, Geist_Mono } from "next/font/google"
+import { AuthProvider } from "@/lib/contexts/AuthContext"
+import { ThemeProvider } from "@/lib/contexts/ThemeContext"
+import { getCurrentUser } from "@/lib/supabase/server"
+import { Toaster } from 'react-hot-toast'
 
-import "./globals.css";
-import "./layout.css";
+import "./globals.css"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
+})
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
+})
 
 export const metadata: Metadata = {
   title: "Thermionix",
   description: "Keep track of your Thermionix devices",
-};
-
-const BODY_CLASSES = `${geistSans.variable} ${geistMono.variable} antialiased`;
+}
 
 /**
- * COMMENT: This is an async Server Component
- * We fetch the initial user on the server for fast first render
+ * LEARNING: Why force-dynamic?
  *
- * LEARNING: Why export const dynamic = 'force-dynamic'?
- * - This tells Next.js: "Don't try to statically generate this layout at build time"
- * - Our layout uses cookies() via getCurrentUser() - this is dynamic by nature
- * - Without this, Next.js logs errors during build (even though they're handled)
- * - With this, Next.js knows to always render this layout on each request
+ * This layout uses getCurrentUser() which reads cookies.
+ * Cookies are only available at request time, not build time.
+ * force-dynamic tells Next.js: "Always render this on the server per request"
  *
- * STATIC vs DYNAMIC:
- * - Static: Pre-rendered at build time, same HTML for all users (fast but no personalization)
- * - Dynamic: Rendered per request, can access cookies/headers (personalized but requires server)
- * - Our app needs dynamic because we check authentication on every request
+ * WITHOUT force-dynamic:
+ * - Next.js tries to pre-render at build time
+ * - cookies() throws errors during build
+ * - Ugly error messages in console
+ *
+ * WITH force-dynamic:
+ * - Next.js knows to skip build-time rendering
+ * - Clean builds, no errors
+ * - Layout renders on every request with fresh auth state
  */
 export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   // STEP 1: Fetch initial user server-side
-  // LEARNING: This runs on every page navigation
-  // Result is cached during the request, so multiple calls don't hit DB
-  // COMMENT: With dynamic = 'force-dynamic', this won't throw during build
-  let initialUser = null;
+  // COMMENT: This provides fast initial render with auth state
+  // If user is logged in, AuthProvider starts with user data immediately
+  let initialUser = null
 
   try {
-    initialUser = await getCurrentUser();
+    initialUser = await getCurrentUser()
   } catch (error) {
-    // COMMENT: If auth check fails, continue with null user
-    // This allows the app to still render (user will see login page)
-    console.error("Error fetching user in layout:", error);
+    // COMMENT: If error fetching user, continue with null
+    // User will see appropriate page based on their actual auth state
+    console.error("[RootLayout] Error fetching user:", error)
   }
 
-  // STEP 2: Determine if we should show navigation
-  // LEARNING: Simple approach - show navigation only when user is authenticated
-  // The AuthRedirect component will handle redirecting unauthenticated users
-  // So if initialUser exists, we know they should see the navigation
-  const shouldShowNav = initialUser !== null;
+  const bodyClasses = `${geistSans.variable} ${geistMono.variable} antialiased`
 
   return (
-    <html lang="en">
-      <body className={BODY_CLASSES}>
-        {/* STEP 2: Wrap app in AuthProvider */}
-        {/* COMMENT: initialUser passed to avoid loading flash on first render */}
-        {/* AuthProvider is a Client Component, but we can use it in Server Component */}
-        <AuthProvider initialUser={initialUser}>
-          {/* STEP 3: Wrap in AuthRedirect for client-side route protection */}
-          {/* COMMENT: This component monitors auth state and redirects when needed */}
-          {/* - Redirects unauthenticated users to /login */}
-          {/* - Redirects authenticated users away from /login, /signup */}
-          {/* - Preserves URL for return after login */}
-          <AuthRedirect>
-            {/* COMMENT: Only show header/nav for authenticated users on protected routes */}
-            {/* LEARNING: We check both initialUser AND shouldShowNav */}
-            {/* - initialUser: Is the user logged in? */}
-            {/* - shouldShowNav: Is this a protected route that needs navigation? */}
-            {/* Both must be true to show the full app layout */}
-            {initialUser && shouldShowNav ? (
-              <>
-                <GlobalHeader />
-                <div className="thermionix-layout-container">
-                  <GlobalNavigation />
-                  <main>{children}</main>
-                </div>
-              </>
-            ) : (
-              /* COMMENT: For public pages or non-authenticated users, just show the page content without header/nav */
-              <>{children}</>
-            )}
-          </AuthRedirect>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply theme before React hydrates to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme-preference');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else if (theme === 'light') {
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  // Check system preference
+                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className={bodyClasses}>
+        {/* STEP 2: Provide theme state to entire app */}
+        {/* COMMENT: ThemeProvider manages dark/light mode */}
+        <ThemeProvider>
+          {/* STEP 3: Provide auth state to entire app */}
+          {/* COMMENT: AuthProvider wraps everything so any component can useAuth() */}
+          {/* initialUser prevents flash of "not logged in" state */}
+          <AuthProvider initialUser={initialUser}>
+            {/* STEP 4: Render children - could be auth pages or dashboard pages */}
+            {/* COMMENT: Nested layouts (/auth/layout.tsx, /dashboard/layout.tsx) */}
+            {/* will add their own structure (forms, navigation, etc.) */}
+            {children}
+
+            {/* Toast Notifications */}
+            {/* LEARNING: Colors styled via globals.css using CSS variables */}
+            {/* This ensures colors update when tailwind.config.js changes */}
+            {/* See globals.css for .react-hot-toast styles */}
+            <Toaster
+              position="top-right"
+              containerClassName="react-hot-toast"
+            />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

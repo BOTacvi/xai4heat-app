@@ -1,0 +1,23 @@
+/**
+ * Auth Layout Styles
+ *
+ * DESIGN:
+ * - Centered layout for authentication forms
+ * - Theme-aware background (dirty white / dark)
+ * - Supports dark mode
+ * - Max width for readability
+ * - Vertically and horizontally centered
+ */
+
+.authLayout {
+  @apply min-h-screen;
+  @apply flex items-center justify-center;
+  @apply bg-background-light dark:bg-background-dark;
+  @apply transition-colors duration-200;
+  @apply p-8;
+}
+
+.authContainer {
+  @apply w-full;
+  max-width: 400px;
+}

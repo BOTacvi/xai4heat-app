@@ -1,0 +1,36 @@
+/**
+ * Dashboard Layout Styles
+ *
+ * STRUCTURE:
+ * - Wrapper fills 100vh viewport
+ * - Fixed header at top (white background in light, #181818 in dark)
+ * - Below header: sidebar navigation + main content fill remaining space
+ * - Sidebar navigation on left (white background in light, #181818 in dark)
+ * - Main content on right (transparent to show app background)
+ * - Main content has padding p-12 (3rem)
+ * - App background is dirty white/dark (from body bg in globals.css)
+ * - No unnecessary scrolling - content uses available space
+ */
+
+/* Root wrapper - fills viewport height */
+.dashboardWrapper {
+  @apply flex flex-col;
+  @apply h-screen; /* Full viewport height */
+  @apply overflow-hidden; /* Prevent outer scroll */
+}
+
+/* Container for navigation + main content */
+.dashboardLayoutContainer {
+  @apply flex flex-1;
+  @apply overflow-hidden; /* Content scrolls inside main, not here */
+}
+
+/* Main content area */
+.dashboardMain {
+  @apply flex flex-col flex-1;
+  @apply p-12; /* 3rem padding around main content */
+  @apply overflow-y-auto; /* Only main content scrolls */
+
+  /* Transparent background to show app background (dirty white/dark) */
+  @apply bg-transparent;
+}

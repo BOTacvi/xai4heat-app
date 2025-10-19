@@ -27,6 +27,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabaseClient'
 import { signupSchema, SignupFormData } from '@/lib/validations/auth'
 import { Input } from '@/components/fields/Input'
@@ -52,7 +53,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
   })
 
   // UI state
-  const [apiError, setApiError] = useState<string | null>(null)
+  // REFACTOR: Removed apiError state - now using toast notifications
   const [success, setSuccess] = useState(false)
 
   /**
@@ -68,8 +69,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
    * - data is type-safe SignupFormData
    */
   const onSubmit = async (data: SignupFormData) => {
-    setApiError(null)
-
     try {
       // COMMENT: Supabase signup
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -78,7 +77,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
         options: {
           // LEARNING: emailRedirectTo specifies where user goes after confirming email
           // This should be your production domain in production
-          emailRedirectTo: `${window.location.origin}/thermionix`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         }
       })
 
@@ -104,8 +103,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
       // 2. Auto-confirmed → redirect to app
       if (authData.session) {
         // User is auto-confirmed and logged in
+        // REFACTOR: Show success toast instead of inline banner
+        toast.success('Account created successfully!')
         setTimeout(() => {
-          router.push('/thermionix')
+          router.push('/dashboard')
           router.refresh()
         }, 2000)
       } else {
@@ -115,7 +116,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
 
     } catch (err: any) {
       console.error('Signup error:', err)
-      setApiError(err.message || 'An error occurred during signup')
+      // REFACTOR: Display API error via toast instead of inline banner
+      toast.error(err.message || 'An error occurred during signup')
     }
   }
 
@@ -142,11 +144,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={formClasses}>
-      {apiError && (
-        <div className={styles.errorBanner} role="alert">
-          {apiError}
-        </div>
-      )}
+      {/* REFACTOR: Removed inline error banner - now using toast notifications */}
 
       <Input
         label="Email"

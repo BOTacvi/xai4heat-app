@@ -3,27 +3,77 @@
  *
  * NAMING CONVENTION: Classes use kebab-case matching component name
  * Main container: .global-navigation
+ *
+ * DESIGN:
+ * - White background in light mode
+ * - Pure black background in dark mode
+ * - Primary green for active state
+ * - Secondary green hover state
+ * - White text in dark mode for high contrast
+ * - Theme toggle at bottom
  */
 
 .globalNavigation {
-  @apply flex flex-col gap-2 bg-white;
-  flex: 0 0 300px;
+  @apply flex flex-col;
+  @apply border-r border-neutral-200;
+  @apply transition-colors duration-200;
+  @apply p-4;
+  flex: 0 0 280px;
+  height: 100%; /* Fill parent height */
+  background-color: #ffffff;
+}
+
+:global(.dark) .globalNavigation {
+  background-color: #000000;
+  border-right-color: rgb(64, 64, 64);
 }
 
 .nav {
-  @apply flex flex-col gap-2;
+  @apply flex flex-col gap-1;
+  @apply flex-1; /* Take up available space, pushing theme toggle to bottom */
 }
 
 .link {
-  @apply flex items-center gap-3 px-4 py-3;
-  @apply text-gray-700 hover:bg-gray-50;
-  @apply transition-colors duration-200 rounded-lg;
+  @apply flex items-center gap-3;
+  @apply px-4 py-3;
+  @apply text-neutral-700;
+  @apply transition-all duration-200;
+  @apply rounded-lg;
+  @apply font-medium;
+}
+
+.link:hover {
+  background-color: rgba(22, 163, 74, 0.08);
+  color: #16a34a;
+}
+
+:global(.dark) .link {
+  color: #ffffff;
+}
+
+:global(.dark) .link:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
 }
 
 .active {
-  @apply bg-blue-50 text-blue-600;
+  @apply bg-primary text-primary-foreground;
+  @apply hover:bg-primary-dark;
 }
 
 .icon {
   @apply w-5 h-5;
+  @apply flex-shrink-0;
+}
+
+/* Theme toggle container at bottom */
+.themeToggleContainer {
+  @apply mt-auto; /* Push to bottom */
+  @apply pt-4;
+  @apply border-t border-neutral-200;
+  @apply flex justify-center;
+}
+
+:global(.dark) .themeToggleContainer {
+  border-top-color: rgb(64, 64, 64);
 }

@@ -18,7 +18,9 @@ import { getCurrentUser, getUserSettings } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import styles from './SCADA.module.css'
 
-export default async function SCADAPage() {
+type SCADAPageProps = {}
+
+const SCADAPage: React.FC<SCADAPageProps> = async () => {
   // COMMENT: Authentication check
   const user = await getCurrentUser()
 
@@ -51,3 +53,5 @@ export default async function SCADAPage() {
     </div>
   )
 }
+
+export default SCADAPage

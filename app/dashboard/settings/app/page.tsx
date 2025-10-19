@@ -27,7 +27,9 @@ import { redirect } from 'next/navigation'
 import { AppSettingsForm } from './components/AppSettingsForm/AppSettingsForm.component'
 import styles from './AppSettings.module.css'
 
-export default async function AppSettingsPage() {
+type AppSettingsPageProps = {}
+
+const AppSettingsPage: React.FC<AppSettingsPageProps> = async () => {
   // STEP 1: Check authentication
   // COMMENT: Server Component can directly call Supabase server helpers
   const user = await getCurrentUser()
@@ -74,3 +76,5 @@ export default async function AppSettingsPage() {
     </div>
   )
 }
+
+export default AppSettingsPage

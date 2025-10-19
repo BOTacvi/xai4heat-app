@@ -18,7 +18,9 @@ import { getCurrentUser, getUserSettings } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import styles from './Thermionix.module.css'
 
-export default async function ThermionixPage() {
+type ThermionixPageProps = {}
+
+const ThermionixPage: React.FC<ThermionixPageProps> = async () => {
   // COMMENT: Authentication check - required for all protected pages
   const user = await getCurrentUser()
 
@@ -52,3 +54,5 @@ export default async function ThermionixPage() {
     </div>
   )
 }
+
+export default ThermionixPage

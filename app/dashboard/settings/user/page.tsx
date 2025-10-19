@@ -11,7 +11,9 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import styles from './UserSettings.module.css'
 
-export default async function UserSettingsPage() {
+type UserSettingsPageProps = {}
+
+const UserSettingsPage: React.FC<UserSettingsPageProps> = async () => {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -35,3 +37,5 @@ export default async function UserSettingsPage() {
     </div>
   )
 }
+
+export default UserSettingsPage

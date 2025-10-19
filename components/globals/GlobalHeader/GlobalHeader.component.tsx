@@ -36,25 +36,24 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({ className }) => {
    * 1. Call logout() from AuthContext
    * 2. Supabase clears auth cookie
    * 3. AuthContext listener updates state to user=null
-   * 4. Middleware redirects to /auth/login
-   * 5. router.refresh() ensures middleware runs immediately
+   * 4. Router pushes to /auth/login
+   * 5. Middleware ensures user can't access /dashboard/* anymore
+   * 6. Layout automatically removes navigation (user is on /auth/* route)
    */
   const handleLogout = async () => {
     await logout()
 
-    // COMMENT: Force middleware to run immediately
-    // This ensures redirect happens right away instead of on next navigation
-    router.refresh()
-
     // COMMENT: Navigate to login page
-    // Middleware will handle this, but explicit navigation provides better UX
+    // This triggers the layout change - navigation disappears automatically
     router.push('/auth/login')
+
+    // COMMENT: Refresh to ensure middleware runs
+    router.refresh()
   }
 
   // COMMENT: Compose classes following our pattern
   const headerClasses = clsx(
     styles.globalHeader,
-    "thermionix-white-container",
     className
   )
 

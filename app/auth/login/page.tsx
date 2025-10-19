@@ -26,7 +26,9 @@ import styles from './Login.module.css'
  * We can directly await database queries and auth checks
  * No useEffect, no loading states needed for initial render
  */
-export default async function LoginPage() {
+type LoginPageProps = {}
+
+const LoginPage: React.FC<LoginPageProps> = async () => {
   // Check if user is already logged in
   const user = await getCurrentUser()
 
@@ -55,3 +57,5 @@ export default async function LoginPage() {
     </div>
   )
 }
+
+export default LoginPage

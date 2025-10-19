@@ -4,6 +4,14 @@
  * NAMING CONVENTION: Classes use kebab-case matching component name
  * Main container: .global-header
  *
+ * DESIGN:
+ * - White background in light mode
+ * - Pure black background in dark mode
+ * - NO borders
+ * - Subtle shadow for elevation
+ * - White text in dark mode for high contrast
+ * - Primary green for logout button
+ *
  * LAYOUT:
  * - Flexbox horizontal layout with space-between
  * - Left side: title + user email
@@ -11,8 +19,15 @@
  */
 
 .globalHeader {
-  @apply flex items-center justify-between px-6 py-3;
-  @apply border-b border-gray-200;
+  @apply flex items-center justify-between;
+  @apply px-6 py-4;
+  @apply transition-colors duration-200;
+  @apply shadow-sm;
+  background-color: #ffffff;
+}
+
+:global(.dark) .globalHeader {
+  background-color: #000000;
 }
 
 .left {
@@ -20,11 +35,21 @@
 }
 
 .title {
-  @apply text-xl font-semibold text-gray-900;
+  @apply text-xl font-semibold;
+  @apply text-neutral-900;
+}
+
+:global(.dark) .title {
+  color: #ffffff;
 }
 
 .userEmail {
-  @apply text-sm text-gray-600;
+  @apply text-sm;
+  @apply text-neutral-600;
+}
+
+:global(.dark) .userEmail {
+  color: rgb(212, 212, 212);
 }
 
 .logoutButton {

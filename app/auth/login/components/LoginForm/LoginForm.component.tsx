@@ -23,12 +23,12 @@
 
 'use client'
 
-import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import clsx from 'clsx'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabaseClient'
 import { loginSchema, LoginFormData } from '@/lib/validations/auth'
 import { Input } from '@/components/fields/Input'
@@ -45,9 +45,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
   const router = useRouter()
 
   // LEARNING: useSearchParams to read URL query parameters
-  // Example: /auth/login?redirectTo=/thermionix
+  // Example: /auth/login?redirectTo=/dashboard/thermionix
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirectTo') || '/thermionix'
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard'
 
   // LEARNING: React Hook Form setup
   // - register: Function to register inputs (spreads name, ref, onChange, onBlur)
@@ -62,10 +62,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
     mode: 'onBlur', // Validate on blur (when user leaves field)
   })
 
-  // COMMENT: Still need useState for API errors (not field validation errors)
+  // REFACTOR: Removed useState for apiError - now using toast notifications
   // Form validation errors come from Zod/React Hook Form (errors.email, errors.password)
-  // API errors come from Supabase (wrong password, network error, etc.)
-  const [apiError, setApiError] = useState<string | null>(null)
+  // API errors shown via toast.error()
 
   /**
    * Handle form submission
@@ -85,8 +84,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
    * 6. User is now authenticated
    */
   const onSubmit = async (data: LoginFormData) => {
-    setApiError(null)
-
     try {
       // COMMENT: Call Supabase auth with validated data
       // data.email and data.password are guaranteed to exist and be valid
@@ -111,10 +108,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
       // AuthContext will update automatically (onAuthStateChange listener)
       // Middleware will allow access to protected routes
 
-      // LEARNING: Redirect to original page or default to /thermionix
+      // LEARNING: Redirect to original page or default to /dashboard
       // If user came from /scada, they'll be redirected back to /scada
       // This provides better UX - user returns to where they were
       console.log('[LoginForm] Login successful, redirecting to:', redirectTo)
+
+      // REFACTOR: Show success toast instead of inline banner
+      toast.success('Login successful!')
+
       router.push(redirectTo)
 
       // LEARNING: router.refresh() forces a re-fetch of server components
@@ -123,8 +124,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
 
     } catch (err: any) {
       console.error('Login error:', err)
-      // Display API error to user
-      setApiError(err.message || 'An error occurred during login')
+      // REFACTOR: Display API error via toast instead of inline banner
+      toast.error(err.message || 'An error occurred during login')
     }
   }
 
@@ -132,13 +133,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={formClasses}>
-      {/* API Error banner */}
-      {/* COMMENT: Show API errors (from Supabase) at top of form */}
-      {apiError && (
-        <div className={styles.errorBanner} role="alert">
-          {apiError}
-        </div>
-      )}
+      {/* REFACTOR: Removed inline error banner - now using toast notifications */}
 
       {/* Email field */}
       {/* LEARNING: {...register('email')} spreads name, ref, onChange, onBlur */}

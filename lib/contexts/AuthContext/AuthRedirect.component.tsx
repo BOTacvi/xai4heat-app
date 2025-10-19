@@ -65,31 +65,39 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
     if (loading) return
 
     // STEP 1: Define route types
-    // LEARNING: TypeScript arrays with const assertion for type safety
-    // All auth routes are now under /auth
-    const publicRoutes = ['/', '/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password'] as const
-    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+    // LEARNING: New structure with /dashboard/* for authenticated routes
+    const isAuthRoute = pathname.startsWith('/auth')
+    const isDashboardRoute = pathname.startsWith('/dashboard')
+    const isRootRoute = pathname === '/'
 
     // STEP 2: Redirect logic for protected routes
-    // COMMENT: If user is NOT logged in and tries to access protected route
-    if (!user && !isPublicRoute) {
+    // COMMENT: If user is NOT logged in and tries to access dashboard
+    if (!user && isDashboardRoute) {
       // LEARNING: Preserve current URL to redirect back after login
-      // Example: User at /thermionix → Login → Redirect back to /thermionix
-      const currentPath = pathname
-      const loginUrl = `/auth/login?redirectTo=${encodeURIComponent(currentPath)}`
+      const loginUrl = `/auth/login?redirectTo=${encodeURIComponent(pathname)}`
 
       console.log(`[AuthRedirect] User not authenticated, redirecting to login`)
-      console.log(`[AuthRedirect] Will return to: ${currentPath} after login`)
+      console.log(`[AuthRedirect] Will return to: ${pathname} after login`)
 
       router.push(loginUrl)
     }
 
     // STEP 3: Redirect authenticated users away from auth pages
     // COMMENT: If user IS logged in and tries to access login/signup
-    // Example: User logged in navigates to /auth/login → Redirect to /thermionix
-    if (user && pathname.startsWith('/auth')) {
-      console.log(`[AuthRedirect] User already authenticated, redirecting to app`)
-      router.push('/thermionix')
+    // Example: User logged in navigates to /auth/login → Redirect to /dashboard
+    if (user && isAuthRoute) {
+      console.log(`[AuthRedirect] User already authenticated, redirecting to dashboard`)
+      router.push('/dashboard')
+    }
+
+    // STEP 4: Handle root route (optional - middleware also handles this)
+    // COMMENT: Root route should redirect based on auth state
+    if (isRootRoute) {
+      if (user) {
+        router.push('/dashboard')
+      } else {
+        router.push('/auth/login')
+      }
     }
   }, [user, loading, pathname, router])
 

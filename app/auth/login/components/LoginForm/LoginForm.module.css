@@ -3,8 +3,9 @@
 }
 
 .errorBanner {
-  @apply p-3 bg-red-50 border border-red-200 rounded-lg;
-  @apply text-sm text-red-700;
+  @apply p-3 bg-error-bg border border-error rounded-lg;
+  @apply text-sm text-error;
+  @apply dark:bg-red-900/20 dark:border-red-800 dark:text-red-400;
 }
 
 .forgotPassword {
@@ -13,15 +14,16 @@
 
 .footer {
   @apply flex justify-center items-center gap-2;
-  @apply pt-4 border-t border-gray-200;
+  @apply pt-4 border-t border-neutral-200 dark:border-neutral-700;
   @apply text-sm;
 }
 
 .footerText {
-  @apply text-gray-600;
+  @apply text-neutral-600 dark:text-neutral-400;
 }
 
 .link {
-  @apply text-blue-600 hover:text-blue-700 underline;
+  @apply text-primary hover:text-primary-dark underline;
   @apply transition-colors duration-200;
+  @apply dark:text-primary-light dark:hover:text-primary;
 }

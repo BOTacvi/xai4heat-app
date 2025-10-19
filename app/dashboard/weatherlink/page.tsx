@@ -11,7 +11,9 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import styles from './WeatherLink.module.css'
 
-export default async function WeatherLinkPage() {
+type WeatherLinkPageProps = {}
+
+const WeatherLinkPage: React.FC<WeatherLinkPageProps> = async () => {
   // COMMENT: Check authentication - redirect if not logged in
   const user = await getCurrentUser()
 
@@ -31,3 +33,5 @@ export default async function WeatherLinkPage() {
     </div>
   )
 }
+
+export default WeatherLinkPage

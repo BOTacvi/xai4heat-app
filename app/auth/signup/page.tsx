@@ -7,7 +7,9 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import SignupForm from './components/SignupForm'
 import styles from './Signup.module.css'
 
-export default async function SignupPage() {
+type SignupPageProps = {}
+
+const SignupPage: React.FC<SignupPageProps> = async () => {
   // Check if user is already logged in
   const user = await getCurrentUser()
 
@@ -30,3 +32,5 @@ export default async function SignupPage() {
     </div>
   )
 }
+
+export default SignupPage

@@ -31,7 +31,12 @@ const NavLink: React.FC<NavLinkProps> = ({
   // COMMENT: usePathname() gives us the current route
   // We use this to determine if this link is active
   const pathname = usePathname();
-  const isActive = pathname === href;
+
+  // LEARNING: Active state matching strategy
+  // - Exact match: pathname === href (e.g., /dashboard === /dashboard)
+  // - Prefix match: pathname starts with href + "/" (e.g., /dashboard/settings/app starts with /dashboard/settings/)
+  // This ensures that parent routes stay active when navigating to subroutes
+  const isActive = pathname === href || pathname.startsWith(href + "/");
 
   // COMMENT: Compose classes following our pattern
   const linkClasses = clsx(

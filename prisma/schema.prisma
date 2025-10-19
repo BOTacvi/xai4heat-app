@@ -66,25 +66,32 @@ model thermionyx_measurements {
 }
 
 /**
- * REMOVED: tuya_measurements table
- *
- * REASON: We are using thermionyx_measurements table instead for Thermionix sensor data
- * This model has been commented out to remove Tuya references from the application
+ * User Settings Model
+ * COMMENT: This stores per-user expected temperature and pressure ranges
+ * that will be used to determine warning states (too high/too low) on the dashboard
+ * The user_id maps to Supabase Auth user UUID
  */
-// model tuya_measurements {
-//   datetime       DateTime @db.Timestamp(6)
-//   location       String?  @db.VarChar
-//   device_id      String   @db.VarChar
-//   co2_value      Int?
-//   temp_current   Int?
-//   humidity_value Int?
-//   voc_value      Int?
-//   ch2o_value     Int?
-//   co2_state      String?  @db.VarChar
-//   devices        Device   @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_device")
-//
-//   @@id([datetime, device_id])
-// }
+model UserSettings {
+  id                    String   @id @default(uuid()) @db.Uuid
+  user_id               String   @unique @db.Uuid // Supabase Auth user ID
+
+  // Temperature range settings (in Celsius)
+  // COMMENT: These define what the user considers "normal" operating temperature
+  // Values outside this range will trigger visual warnings (red/blue backgrounds)
+  expected_temp_min     Float    @default(23.0)
+  expected_temp_max     Float    @default(26.0)
+
+  // Pressure range settings (unit should be consistent across your system)
+  // COMMENT: Similar to temperature, these define acceptable pressure bounds
+  expected_pressure_min Float    @default(1.5)
+  expected_pressure_max Float    @default(2.5)
+
+  // Metadata
+  created_at            DateTime @default(now()) @db.Timestamp(6)
+  updated_at            DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("user_settings")
+}
 
 model weatherlink_measurements {
   datetime              DateTime  @db.Timestamp(6)
@@ -118,30 +125,4 @@ model weatherlink_measurements {
   wind_gust_10_min      Float?
 
   @@id([datetime, location])
-}
-
-// User Settings Model
-// COMMENT: This stores per-user expected temperature and pressure ranges
-// that will be used to determine warning states (too high/too low) on the dashboard
-// The user_id maps to Supabase Auth user UUID
-model UserSettings {
-  id        String   @id @default(uuid()) @db.Uuid
-  user_id   String   @unique @db.Uuid // Supabase Auth user ID
-
-  // Temperature range settings (in Celsius)
-  // COMMENT: These define what the user considers "normal" operating temperature
-  // Values outside this range will trigger visual warnings (red/blue backgrounds)
-  expected_temp_min Float @default(23.0)
-  expected_temp_max Float @default(26.0)
-
-  // Pressure range settings (unit should be consistent across your system)
-  // COMMENT: Similar to temperature, these define acceptable pressure bounds
-  expected_pressure_min Float @default(1.5)
-  expected_pressure_max Float @default(2.5)
-
-  // Metadata
-  created_at DateTime @default(now()) @db.Timestamp(6)
-  updated_at DateTime @updatedAt @db.Timestamp(6)
-
-  @@map("user_settings")
 }

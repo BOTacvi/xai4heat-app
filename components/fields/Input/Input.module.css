@@ -1,5 +1,10 @@
 /**
  * Input Styles
+ *
+ * DESIGN:
+ * - Theme-aware colors with dark mode support
+ * - Green focus ring (theme primary color)
+ * - Neutral grey borders and backgrounds
  */
 
 .wrapper {
@@ -11,11 +16,11 @@
 }
 
 .label {
-  @apply text-sm font-medium text-gray-700;
+  @apply text-sm font-medium text-neutral-700 dark:text-neutral-300;
 }
 
 .required {
-  @apply ml-1 text-red-500;
+  @apply ml-1 text-error;
 }
 
 .inputContainer {
@@ -24,11 +29,22 @@
 
 .input {
   @apply w-full px-3 py-2 text-base;
-  @apply border border-gray-300 rounded-lg;
-  @apply bg-white text-gray-900;
+  @apply border border-neutral-300 rounded-lg;
   @apply transition-colors duration-200;
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-  @apply disabled:bg-gray-100 disabled:cursor-not-allowed;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply disabled:cursor-not-allowed;
+  background-color: #ffffff;
+  color: #171717;
+}
+
+:global(.dark) .input {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-color: rgb(64, 64, 64);
+}
+
+:global(.dark) .input:disabled {
+  background-color: #262626;
 }
 
 .input.withIcon {
@@ -42,23 +58,23 @@
 
 .icon {
   @apply absolute left-3 top-1/2 -translate-y-1/2;
-  @apply text-gray-400;
+  @apply text-neutral-400 dark:text-neutral-500;
   @apply pointer-events-none;
 }
 
 .errorText {
-  @apply text-sm text-red-600;
+  @apply text-sm text-error;
 }
 
 .helperText {
-  @apply text-sm text-gray-500;
+  @apply text-sm text-neutral-500 dark:text-neutral-400;
 }
 
 /* Hover states - complex enough to warrant CSS */
 .input:not(:disabled):hover {
-  @apply border-gray-400;
+  @apply border-neutral-400 dark:border-neutral-500;
 }
 
 .input.error:not(:disabled):hover {
-  @apply border-red-600;
+  @apply border-red-600 dark:border-red-500;
 }

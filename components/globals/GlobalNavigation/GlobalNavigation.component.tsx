@@ -6,9 +6,17 @@
  * - Type: GlobalNavigationProps
  * - Pattern: React.FC<PropsType>
  * - Classes: kebab-case (global-navigation)
+ *
+ * UPDATES:
+ * - White background (light) / dark card background (dark)
+ * - Theme toggle at bottom
+ * - Proper spacing and layout
  */
 
+'use client'
+
 import NavLink from "@/components/atoms/NavLink";
+import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 import { ROUTES } from "./data";
 import clsx from "clsx";
 import styles from "./GlobalNavigation.module.css";
@@ -18,15 +26,15 @@ type GlobalNavigationProps = {
 };
 
 const GlobalNavigation: React.FC<GlobalNavigationProps> = ({ className }) => {
-  // COMMENT: Main container classes - local styles, global classes, parent override
+  // COMMENT: Main container classes - local styles, parent override
   const navigationClasses = clsx(
     styles.globalNavigation,
-    "thermionix-white-container",
     className
   );
 
   return (
     <aside className={navigationClasses}>
+      {/* Navigation links */}
       <nav className={styles.nav}>
         {ROUTES.map(({ label, href, icon: Icon }) => {
           // LEARNING: Destructure icon as Icon (capital I)
@@ -53,6 +61,11 @@ const GlobalNavigation: React.FC<GlobalNavigationProps> = ({ className }) => {
           );
         })}
       </nav>
+
+      {/* Theme toggle at bottom */}
+      <div className={styles.themeToggleContainer}>
+        <ThemeToggle />
+      </div>
     </aside>
   );
 };

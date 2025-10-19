@@ -19,7 +19,9 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import ForgotPasswordForm from './components/ForgotPasswordForm'
 import styles from './ForgotPassword.module.css'
 
-export default async function ForgotPasswordPage() {
+type ForgotPasswordPageProps = {}
+
+const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = async () => {
   // If already logged in, redirect to app
   const user = await getCurrentUser()
 
@@ -42,3 +44,5 @@ export default async function ForgotPasswordPage() {
     </div>
   )
 }
+
+export default ForgotPasswordPage
