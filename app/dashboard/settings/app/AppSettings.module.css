@@ -2,20 +2,29 @@
   @apply space-y-6;
 }
 
+.title {
+  @apply text-2xl font-semibold mb-2;
+  color: var(--text-primary);
+}
+
 .subtitle {
-  @apply text-2xl font-semibold text-gray-900 mb-2;
+  @apply text-2xl font-semibold mb-2;
+  color: var(--text-primary);
 }
 
 .description {
-  @apply text-gray-600 mb-6;
+  @apply mb-6;
+  color: var(--text-secondary);
 }
 
 .currentSettings {
-  @apply bg-gray-50 rounded-lg p-4 mb-6;
+  @apply rounded-lg p-4 mb-6;
+  background-color: var(--bg-card);
 }
 
 .sectionTitle {
-  @apply text-lg font-medium text-gray-900 mb-3;
+  @apply text-lg font-medium mb-3;
+  color: var(--text-primary);
 }
 
 .settingGrid {
@@ -27,9 +36,11 @@
 }
 
 .label {
-  @apply text-sm font-medium text-gray-700;
+  @apply text-sm font-medium;
+  color: var(--text-secondary);
 }
 
 .value {
-  @apply text-base text-gray-900;
+  @apply text-base;
+  color: var(--text-primary);
 }

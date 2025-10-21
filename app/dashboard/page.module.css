@@ -31,12 +31,7 @@
   @apply transition-all duration-200;
   @apply no-underline;
   min-height: 200px;
-  /* Use explicit colors instead of theme tokens in @apply */
-  background-color: #ffffff;
-}
-
-:global(.dark) .card {
-  background-color: #000000;
+  background-color: var(--bg-card);
 }
 
 .card:hover {

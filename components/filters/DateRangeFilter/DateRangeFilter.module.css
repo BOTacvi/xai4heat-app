@@ -1,0 +1,15 @@
+/**
+ * DateRangeFilter Styles
+ */
+
+.container {
+  @apply flex flex-col gap-4;
+}
+
+.dateInputs {
+  @apply flex gap-4;
+}
+
+.dateInputs > * {
+  @apply flex-1;
+}

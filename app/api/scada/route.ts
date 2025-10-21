@@ -1,25 +1,102 @@
+/**
+ * SCADA Measurements API Route
+ *
+ * ENDPOINT: GET /api/scada?lamela=L2&from=2024-01-01&to=2024-01-31
+ *
+ * QUERY PARAMETERS:
+ * - lamela (optional): Lamela location identifier (e.g., "L2", "L3")
+ *   - If provided: returns measurements for that specific lamela
+ *   - If omitted: returns all measurements (useful for fetching unique lamelas)
+ * - from (optional): Start datetime for filtering (ISO 8601 format)
+ * - to (optional): End datetime for filtering (ISO 8601 format)
+ * - limit (optional): Max number of records to return (default: 200)
+ */
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const lamela = searchParams.get("lamela");
+  try {
+    const { searchParams } = new URL(req.url);
+    const lamela = searchParams.get("lamela");
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+    const limitParam = searchParams.get("limit");
 
-  if (!lamela) {
-    return NextResponse.json({ error: "Missing lamela" }, { status: 400 });
-  }
+    console.log("[SCADA API] Query params:", { lamela, fromParam, toParam, limitParam });
 
-  const data = await prisma.scada_measurements.findMany({
-    where: {
-      location: {
-        contains: lamela, // flexible if location = lamela_1 or something like that
+    // Parse optional parameters
+    const from = fromParam ? new Date(fromParam) : undefined;
+    const to = toParam ? new Date(toParam) : undefined;
+    const limit = limitParam ? parseInt(limitParam, 10) : 200;
+
+    console.log("[SCADA API] Parsed dates:", { from, to });
+
+    // Validate dates
+    if (from && isNaN(from.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid 'from' date format. Use ISO 8601 format." },
+        { status: 400 }
+      );
+    }
+
+    if (to && isNaN(to.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid 'to' date format. Use ISO 8601 format." },
+        { status: 400 }
+      );
+    }
+
+    // Build WHERE clause
+    const whereClause: any = {};
+
+    // Only filter by lamela if provided
+    if (lamela) {
+      whereClause.location = {
+        contains: lamela,
+      };
+    }
+
+    if (from || to) {
+      whereClause.datetime = {};
+      if (from) {
+        whereClause.datetime.gte = from;
+      }
+      if (to) {
+        whereClause.datetime.lte = to;
+      }
+    }
+
+    console.log("[SCADA API] WHERE clause:", JSON.stringify(whereClause, null, 2));
+
+    const data = await prisma.scada_measurements.findMany({
+      where: whereClause,
+      orderBy: {
+        datetime: "desc",
       },
-    },
-    orderBy: {
-      datetime: "desc",
-    },
-    take: 200,
-  });
+      take: limit,
+    });
 
-  return NextResponse.json(data);
+    console.log("[SCADA API] Found", data.length, "measurements");
+    if (data.length > 0) {
+      console.log("[SCADA API] First result datetime:", data[0].datetime);
+      console.log("[SCADA API] Last result datetime:", data[data.length - 1].datetime);
+    }
+
+    return NextResponse.json({
+      lamela: lamela || "all",
+      count: data.length,
+      measurements: data,
+    });
+  } catch (error) {
+    console.error("Error fetching SCADA measurements:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to fetch measurements",
+        details:
+          process.env.NODE_ENV === "development" ? String(error) : undefined,
+      },
+      { status: 500 }
+    );
+  }
 }

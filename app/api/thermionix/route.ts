@@ -93,9 +93,13 @@ export async function GET(req: Request) {
     // STEP 4: Parse optional parameters
     // COMMENT: Date filtering for graphs showing specific time ranges
     // Dates should be in ISO 8601 format: "2024-01-01T00:00:00Z"
+    console.log("[THERMIONIX API] Query params:", { deviceIdParam, fromParam, toParam, limitParam });
+
     const from = fromParam ? new Date(fromParam) : undefined;
     const to = toParam ? new Date(toParam) : undefined;
     const limit = limitParam ? parseInt(limitParam, 10) : 100;
+
+    console.log("[THERMIONIX API] Parsed dates:", { from, to });
 
     // COMMENT: Validate parsed dates
     if (from && isNaN(from.getTime())) {
@@ -167,6 +171,8 @@ export async function GET(req: Request) {
     // - where: SQL WHERE clause (filtering)
     // - orderBy: SQL ORDER BY clause (sorting)
     // - take: SQL LIMIT clause (max records to return)
+    console.log("[THERMIONIX API] WHERE clause:", JSON.stringify(whereClause, null, 2));
+
     const data = await prisma.thermionyx_measurements.findMany({
       where: whereClause,
       orderBy: {
@@ -174,6 +180,12 @@ export async function GET(req: Request) {
       },
       take: limit, // Limit to prevent huge responses
     });
+
+    console.log("[THERMIONIX API] Found", data.length, "measurements");
+    if (data.length > 0) {
+      console.log("[THERMIONIX API] First result datetime:", data[0].datetime);
+      console.log("[THERMIONIX API] Last result datetime:", data[data.length - 1].datetime);
+    }
 
     // STEP 7: Return successful response
     // COMMENT: Return measurements as JSON

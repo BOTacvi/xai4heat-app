@@ -15,17 +15,11 @@
 
 .globalNavigation {
   @apply flex flex-col;
-  @apply border-r border-neutral-200;
   @apply transition-colors duration-200;
   @apply p-4;
   flex: 0 0 280px;
   height: 100%; /* Fill parent height */
-  background-color: #ffffff;
-}
-
-:global(.dark) .globalNavigation {
-  background-color: #000000;
-  border-right-color: rgb(64, 64, 64);
+  background-color: var(--bg-nav);
 }
 
 .nav {
@@ -43,8 +37,8 @@
 }
 
 .link:hover {
-  background-color: rgba(22, 163, 74, 0.08);
-  color: #16a34a;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
 }
 
 :global(.dark) .link {
@@ -52,8 +46,8 @@
 }
 
 :global(.dark) .link:hover {
-  background-color: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
 }
 
 .active {
@@ -70,10 +64,5 @@
 .themeToggleContainer {
   @apply mt-auto; /* Push to bottom */
   @apply pt-4;
-  @apply border-t border-neutral-200;
   @apply flex justify-center;
-}
-
-:global(.dark) .themeToggleContainer {
-  border-top-color: rgb(64, 64, 64);
 }

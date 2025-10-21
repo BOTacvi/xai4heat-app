@@ -1,0 +1,85 @@
+/**
+ * MetricCard Styles
+ */
+
+.card {
+  @apply flex flex-col items-center justify-center;
+  @apply text-center;
+}
+
+.title {
+  @apply text-sm font-medium mb-3;
+  color: #737373;
+}
+
+:global(.dark) .title {
+  color: #a3a3a3;
+}
+
+.valueRow {
+  @apply flex flex-row items-baseline justify-center gap-2 mb-3;
+}
+
+.value {
+  @apply text-5xl font-bold;
+}
+
+.valueNormal {
+  color: #16a34a;
+}
+
+:global(.dark) .valueNormal {
+  color: #22c55e;
+}
+
+.valueHigh {
+  color: #dc2626;
+}
+
+:global(.dark) .valueHigh {
+  color: #ef4444;
+}
+
+.valueLow {
+  color: #2563eb;
+}
+
+:global(.dark) .valueLow {
+  color: #3b82f6;
+}
+
+.loadingValue {
+  @apply text-5xl font-bold;
+  color: #d4d4d4;
+}
+
+:global(.dark) .loadingValue {
+  color: #404040;
+}
+
+.unit {
+  @apply text-base font-medium;
+  color: #525252;
+}
+
+:global(.dark) .unit {
+  color: #a3a3a3;
+}
+
+.timestamp {
+  @apply text-xs mt-2;
+  color: #737373;
+}
+
+:global(.dark) .timestamp {
+  color: #737373;
+}
+
+.range {
+  @apply text-xs mt-1;
+  color: #a3a3a3;
+}
+
+:global(.dark) .range {
+  color: #737373;
+}

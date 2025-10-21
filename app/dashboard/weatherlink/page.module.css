@@ -1,0 +1,43 @@
+/**
+ * Thermionix Page Styles
+ */
+
+.page {
+  @apply p-6;
+  @apply flex flex-col gap-6;
+}
+
+.title {
+  @apply text-3xl font-bold mb-2;
+  color: #171717;
+}
+
+:global(.dark) .title {
+  color: #ffffff;
+}
+
+.selectContainer {
+  /* This will be a card-container in the component */
+}
+
+.loadingText {
+  @apply text-base;
+  color: #a3a3a3;
+}
+
+:global(.dark) .loadingText {
+  color: #737373;
+}
+
+.contentGrid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.gridItem {
+  /* Grid items will stretch to fill their cell */
+  @apply flex flex-col;
+}
+
+.gridItemFullWidth {
+  @apply col-span-1 lg:col-span-2;
+}

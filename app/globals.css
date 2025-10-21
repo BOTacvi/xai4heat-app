@@ -29,9 +29,14 @@
     --text-secondary: #525252; /* neutral-600 */
     --text-muted: #737373; /* neutral-500 */
 
+    /* Border colors */
+    --border-color: #e5e5e5; /* neutral-200 */
+    --border-color-dark: #d4d4d4; /* neutral-300 */
+
     /* Status colors */
     --error-color: #e53935;
     --error-bg: rgba(229, 57, 53, 0.1);
+    --error-border: #dc2626; /* red-600 */
 
     --warning-color: #ff9800;
     --warning-bg: rgba(255, 152, 0, 0.1);
@@ -65,9 +70,14 @@
     --text-secondary: #d4d4d4; /* neutral-300 */
     --text-muted: #a3a3a3; /* neutral-400 */
 
+    /* Border colors */
+    --border-color: #404040; /* neutral-700 */
+    --border-color-dark: #525252; /* neutral-600 */
+
     /* Status colors (slightly adjusted for dark mode) */
     --error-color: #ef4444;
     --error-bg: rgba(239, 68, 68, 0.15);
+    --error-border: #991b1b; /* red-800 */
 
     --warning-color: #f59e0b;
     --warning-bg: rgba(245, 158, 11, 0.15);
@@ -86,6 +96,79 @@
     @apply bg-background-light dark:bg-background-dark;
     @apply text-neutral-900 dark:text-neutral-50;
     @apply transition-colors duration-200;
+  }
+}
+
+/* ============================================
+   GLOBAL UTILITY CLASSES
+   Organized by category for maintainability
+   ============================================ */
+
+@layer components {
+  /* ==================== CARD STYLES ==================== */
+  /* Card container utility - use for all card-like containers */
+  .card-container {
+    @apply p-6 rounded-lg;
+    @apply transition-shadow duration-200;
+    background-color: var(--bg-card);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+  }
+
+  .card-container:hover {
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.dark) .card-container {
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(.dark) .card-container:hover {
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ==================== PAGE LAYOUT STYLES ==================== */
+  /* Page container - use for all dashboard pages */
+  .page-container {
+    @apply p-6;
+    @apply flex flex-col gap-6;
+  }
+
+  /* Page title - use for h1 on dashboard pages */
+  .page-title {
+    @apply text-3xl font-bold mb-2;
+    color: var(--text-primary);
+  }
+
+  /* Loading text */
+  .loading-text {
+    @apply text-base;
+    color: #a3a3a3;
+  }
+
+  :global(.dark) .loading-text {
+    color: #737373;
+  }
+
+  /* ==================== GRID LAYOUT STYLES ==================== */
+  /* Content grid - 2 column responsive grid for dashboard content */
+  .content-grid {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+  }
+
+  /* Grid item - stretches to fill grid cell height */
+  .grid-item {
+    @apply flex flex-col;
+    height: 100%; /* Ensure full height of grid cell */
+  }
+
+  /* Make child card-containers fill the grid item */
+  .grid-item > .card-container {
+    @apply flex-1; /* Fill remaining space */
+  }
+
+  /* Full width grid item - spans both columns */
+  .grid-item-full-width {
+    @apply col-span-1 lg:col-span-2;
   }
 }
 

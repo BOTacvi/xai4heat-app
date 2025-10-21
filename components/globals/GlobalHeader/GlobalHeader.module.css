@@ -23,11 +23,7 @@
   @apply px-6 py-4;
   @apply transition-colors duration-200;
   @apply shadow-sm;
-  background-color: #ffffff;
-}
-
-:global(.dark) .globalHeader {
-  background-color: #000000;
+  background-color: var(--bg-card);
 }
 
 .left {

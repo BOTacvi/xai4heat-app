@@ -1,0 +1,39 @@
+/**
+ * TimeSeriesChart Styles
+ */
+
+.card {
+  /* Additional chart-specific styles if needed */
+}
+
+.title {
+  @apply text-lg font-semibold mb-4;
+  color: #171717;
+}
+
+:global(.dark) .title {
+  color: #ffffff;
+}
+
+.loadingContainer {
+  @apply flex items-center justify-center;
+  height: 300px;
+}
+
+.loadingText {
+  @apply text-base;
+  color: #a3a3a3;
+}
+
+:global(.dark) .loadingText {
+  color: #737373;
+}
+
+.emptyText {
+  @apply text-base;
+  color: #a3a3a3;
+}
+
+:global(.dark) .emptyText {
+  color: #737373;
+}

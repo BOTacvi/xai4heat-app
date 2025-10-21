@@ -1,0 +1,51 @@
+/**
+ * Select Styles
+ */
+
+.wrapper {
+  @apply flex flex-col gap-1.5;
+}
+
+.fullWidth {
+  @apply w-full;
+}
+
+.label {
+  @apply text-sm font-medium text-neutral-700;
+}
+
+:global(.dark) .label {
+  color: #ffffff;
+}
+
+.select {
+  @apply w-full px-3 py-2 text-base;
+  @apply border border-neutral-300 rounded-lg;
+  @apply transition-colors duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply cursor-pointer;
+  background-color: #ffffff;
+  color: #171717;
+}
+
+:global(.dark) .select {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-color: rgb(64, 64, 64);
+}
+
+.select:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+:global(.dark) .select:disabled {
+  background-color: #262626;
+}
+
+.select.error {
+  @apply border-error;
+}
+
+.errorText {
+  @apply text-sm text-error;
+}
