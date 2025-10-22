@@ -31,8 +31,9 @@ import {
 
 // COMMENT: Updated to use /dashboard/* paths
 // COMMENT: "Dashboard" renamed to "Home" per design guide
+// COMMENT: Home uses exact matching to avoid highlighting on all /dashboard/* routes
 export const ROUTES = [
-  { label: "Home", href: "/dashboard", icon: Home },
+  { label: "Home", href: "/dashboard", icon: Home, exact: true },
   { label: "Thermionix", href: "/dashboard/thermionix", icon: Thermometer },
   { label: "SCADA", href: "/dashboard/scada", icon: Activity },
   { label: "WeatherLink", href: "/dashboard/weatherlink", icon: Cloud },

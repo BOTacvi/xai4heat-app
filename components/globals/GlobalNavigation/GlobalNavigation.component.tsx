@@ -36,7 +36,7 @@ const GlobalNavigation: React.FC<GlobalNavigationProps> = ({ className }) => {
     <aside className={navigationClasses}>
       {/* Navigation links */}
       <nav className={styles.nav}>
-        {ROUTES.map(({ label, href, icon: Icon }) => {
+        {ROUTES.map(({ label, href, icon: Icon, exact }) => {
           // LEARNING: Destructure icon as Icon (capital I)
           // This allows us to use it as a React component: <Icon />
           // If we kept it lowercase, React would think it's an HTML element
@@ -50,6 +50,7 @@ const GlobalNavigation: React.FC<GlobalNavigationProps> = ({ className }) => {
               href={href}
               className={linkClasses}
               activeClassName={activeClasses}
+              exact={exact}
             >
               {/* COMMENT: Render the icon component with size */}
               {/* lucide-react icons accept size, color, strokeWidth props */}
