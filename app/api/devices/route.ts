@@ -77,13 +77,8 @@ export async function GET() {
   try {
     // COMMENT: Query all devices from database
     // WHY no WHERE clause: We want all devices for the selector dropdown
-    const devices = await prisma.device.findMany({
-      // COMMENT: Order by name for consistent UI display
-      // Device names like "L8_33_67" will sort naturally
-      orderBy: {
-        name: "asc",
-      },
-    });
+    // NOTE: Sorting is done on frontend for complex lamela/building/apartment sorting
+    const devices = await prisma.device.findMany();
 
     // COMMENT: Return devices as JSON
     // NextResponse.json() automatically:

@@ -136,10 +136,55 @@ export default function ThermionixPage() {
   }, [selectedDeviceId, dateRange]);
 
   // Prepare device options for select
-  const deviceOptions: SelectOption[] = devices.map((device) => ({
-    label: `${device.name} - ${device.location}`,
-    value: device.device_id,
-  }));
+  const deviceOptions: SelectOption[] = devices
+    .filter((device) => !device.name.includes("CO2")) // Filter out CO2 devices
+    .sort((a, b) => {
+      // Sort by lamela, then building, then apartment
+      const partsA = a.name.split("_");
+      const partsB = b.name.split("_");
+
+      if (partsA.length >= 3 && partsB.length >= 3) {
+        // Extract and convert to numbers for proper sorting
+        const lamelaA = parseInt(partsA[0].replace("L", "")) || 0;
+        const lamelaB = parseInt(partsB[0].replace("L", "")) || 0;
+        const buildingA = parseInt(partsA[1]) || 0;
+        const buildingB = parseInt(partsB[1]) || 0;
+        const apartmentA = parseInt(partsA[2]) || 0;
+        const apartmentB = parseInt(partsB[2]) || 0;
+
+        // Compare lamela first
+        if (lamelaA !== lamelaB) return lamelaA - lamelaB;
+        // Then building
+        if (buildingA !== buildingB) return buildingA - buildingB;
+        // Finally apartment
+        return apartmentA - apartmentB;
+      }
+
+      // Fallback to string comparison
+      return a.name.localeCompare(b.name);
+    })
+    .map((device) => {
+      // Extract lamela, building, and apartment numbers from device name
+      // Example: "L8_33_67" -> lamela: "8", building: "33", apartment: "67"
+      const parts = device.name.split("_");
+
+      if (parts.length >= 3) {
+        const lamela = parts[0].replace("L", ""); // Remove 'L' prefix from lamela
+        const building = parts[1];
+        const apartment = parts[2];
+
+        return {
+          label: `Apartment: ${lamela}/${building}/${apartment}`,
+          value: device.device_id,
+        };
+      }
+
+      // Fallback if format doesn't match expected pattern
+      return {
+        label: `Apartment: ${device.name}`,
+        value: device.device_id,
+      };
+    });
 
   // Get current values (latest measurement)
   const currentTemp =
