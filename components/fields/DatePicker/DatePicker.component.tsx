@@ -22,6 +22,8 @@ type DatePickerProps = {
   disabled?: boolean;
   fullWidth?: boolean;
   className?: string;
+  /** Dates that should be disabled (not selectable) */
+  disabledDays?: Date | Date[] | ((date: Date) => boolean);
 };
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -31,6 +33,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   disabled = false,
   fullWidth = true,
   className,
+  disabledDays,
 }) => {
   const id = useId();
   const [isOpen, setIsOpen] = useState(false);
@@ -104,6 +107,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               selected={value}
               onSelect={handleSelect}
               showOutsideDays={false}
+              disabled={disabledDays}
             />
           </div>
         )}
