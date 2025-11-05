@@ -36,7 +36,7 @@
   @apply font-medium;
 }
 
-.link:hover {
+.link:hover:not(.active) {
   background-color: var(--secondary-color);
   color: var(--primary-color);
 }
@@ -45,14 +45,19 @@
   color: #ffffff;
 }
 
-:global(.dark) .link:hover {
+:global(.dark) .link:hover:not(.active) {
   background-color: var(--secondary-color);
   color: var(--primary-color);
 }
 
 .active {
   @apply bg-primary text-primary-foreground;
-  @apply hover:bg-primary-dark;
+}
+
+/* Active link should not change on hover */
+.active:hover {
+  background-color: var(--primary-color);
+  color: var(--primary-foreground);
 }
 
 .icon {

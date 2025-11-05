@@ -41,14 +41,11 @@
 
 .userEmail {
   @apply text-sm;
-  @apply text-neutral-600;
-}
-
-:global(.dark) .userEmail {
-  color: rgb(212, 212, 212);
+  color: var(--text-secondary);
 }
 
 .logoutButton {
   /* Button component handles most styling via variant="secondary" */
   /* This class allows parent-specific overrides if needed */
+  border-color: currentColor !important;
 }

@@ -1,0 +1,209 @@
+/**
+ * DatePicker Styles
+ *
+ * DESIGN GOALS:
+ * - Use app primary color (green #16a34a) instead of default blue
+ * - Border radius matching app design system (rounded-lg = 0.5rem / 8px)
+ * - Larger buttons and gaps for better UX
+ * - Theme-aware (light/dark mode support)
+ *
+ * APPROACH:
+ * - Import react-day-picker/dist/style.css for base layout
+ * - Override only colors, sizes, and border-radius
+ */
+
+.wrapper {
+  @apply flex flex-col gap-1.5;
+}
+
+.fullWidth {
+  @apply w-full;
+}
+
+.label {
+  @apply text-sm font-medium text-neutral-700 dark:text-neutral-300;
+}
+
+.inputContainer {
+  @apply relative;
+}
+
+.input {
+  @apply w-full px-3 py-2 text-base;
+  @apply border border-neutral-300 rounded-lg;
+  @apply transition-colors duration-200;
+  @apply flex items-center justify-between;
+  @apply cursor-pointer;
+  background-color: #ffffff;
+  color: #171717;
+}
+
+.input:hover:not(.disabled) {
+  @apply border-neutral-400;
+}
+
+.input.disabled {
+  @apply cursor-not-allowed opacity-60;
+  background-color: #f5f5f5;
+  color: #737373;
+}
+
+:global(.dark) .input {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-color: rgb(64, 64, 64);
+}
+
+:global(.dark) .input:hover:not(.disabled) {
+  border-color: rgb(82, 82, 82);
+}
+
+:global(.dark) .input.disabled {
+  background-color: #262626;
+  color: #a3a3a3;
+}
+
+.inputText {
+  @apply flex-1;
+}
+
+.icon {
+  @apply text-neutral-400 dark:text-neutral-500;
+  flex-shrink: 0;
+}
+
+.input.disabled .icon {
+  @apply text-neutral-300 dark:text-neutral-600;
+}
+
+/* Dropdown container */
+.dropdown {
+  @apply absolute top-full left-0 z-50;
+  @apply mt-2; /* Gap between input and dropdown */
+  @apply rounded-lg;
+  @apply shadow-xl;
+  @apply p-4;
+  background-color: #ffffff;
+  border: 1px solid #e5e5e5;
+}
+
+:global(.dark) .dropdown {
+  background-color: #1a1a1a;
+  border-color: rgb(64, 64, 64);
+}
+
+/* ============================================
+   REACT-DAY-PICKER OVERRIDES
+   Override default styles to match app design
+   ============================================ */
+
+/* Override react-day-picker default blue with green */
+/* Navigation arrows use stroke, not fill */
+.dropdown :global(.rdp-nav) svg {
+  stroke: #16a34a !important;
+  fill: none !important;
+}
+
+:global(.dark) .dropdown :global(.rdp-nav) svg {
+  stroke: #22c55e !important;
+}
+
+/* Selected day background */
+.dropdown :global(.rdp-day_selected) {
+  background-color: #16a34a !important;
+  color: white !important;
+}
+
+:global(.dark) .dropdown :global(.rdp-day_selected) {
+  background-color: #22c55e !important;
+  color: #000000 !important;
+}
+
+/* Month caption label */
+.dropdown :global(.rdp-caption_label) {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #171717;
+}
+
+:global(.dark) .dropdown :global(.rdp-caption_label) {
+  color: #ffffff;
+}
+
+/* Navigation buttons - BIGGER + ROUNDED */
+.dropdown :global(.rdp-nav_button) {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 0.5rem !important; /* rounded-lg instead of default */
+  border: 1px solid #d4d4d4 !important;
+  background: transparent !important;
+  color: #525252 !important;
+}
+
+.dropdown :global(.rdp-nav_button:hover:not([disabled])) {
+  border-color: #a3a3a3 !important;
+  background-color: #f5f5f5 !important;
+}
+
+:global(.dark) .dropdown :global(.rdp-nav_button) {
+  border-color: rgb(64, 64, 64) !important;
+  color: #d4d4d4 !important;
+}
+
+:global(.dark) .dropdown :global(.rdp-nav_button:hover:not([disabled])) {
+  border-color: rgb(82, 82, 82) !important;
+  background-color: #262626 !important;
+}
+
+/* Weekday headers */
+.dropdown :global(.rdp-head_cell) {
+  color: #737373;
+  font-weight: 500;
+}
+
+:global(.dark) .dropdown :global(.rdp-head_cell) {
+  color: #a3a3a3;
+}
+
+/* Day buttons - BIGGER + ROUNDED */
+.dropdown :global(.rdp-day) {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #171717;
+}
+
+:global(.dark) .dropdown :global(.rdp-day) {
+  color: #ffffff;
+}
+
+/* Day hover */
+.dropdown :global(.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled)) {
+  background-color: #f5f5f5 !important;
+}
+
+:global(.dark) .dropdown :global(.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled)) {
+  background-color: #262626 !important;
+}
+
+/* Today - GREEN CIRCLE (uses correct class .rdp-today) */
+.dropdown :global(.rdp-today:not(.rdp-selected)) {
+  font-weight: 700;
+  color: #16a34a !important;
+}
+
+:global(.dark) .dropdown :global(.rdp-today:not(.rdp-selected)) {
+  color: #22c55e !important;
+}
+
+/* Outside days */
+.dropdown :global(.rdp-day_outside) {
+  opacity: 0.4;
+}
+
+/* Disabled days */
+.dropdown :global(.rdp-day_disabled) {
+  opacity: 0.3;
+}

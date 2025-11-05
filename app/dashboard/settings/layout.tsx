@@ -46,12 +46,13 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = async ({
       {/* Top Card: Navigation Tabs */}
       {/* COMMENT: Map over SETTINGS_TABS for dynamic rendering */}
       {/* BENEFIT: Add/remove tabs by editing data/index.ts only */}
-      <nav className={styles.navCard}>
+      {/* Uses global card-container utility for consistent card styling */}
+      <nav className={clsx('card-container', styles['nav-card'])}>
         {SETTINGS_TABS.map((tab) => (
           <NavLink
             key={tab.href}
             href={tab.href}
-            className={styles.navLink}
+            className={styles['nav-link']}
             activeClassName="active"
           >
             {tab.label}
@@ -60,7 +61,8 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = async ({
       </nav>
 
       {/* Bottom Card: Content */}
-      <div className={styles.contentCard}>{children}</div>
+      {/* Uses global card-container utility for consistent card styling */}
+      <div className={clsx('card-container', styles['content-card'])}>{children}</div>
     </div>
   );
 };

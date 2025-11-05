@@ -20,45 +20,38 @@
 }
 
 /* Top Card - Navigation Tabs */
-.navCard {
+/* Uses global card-container utility for consistent styling */
+.nav-card {
   @apply flex gap-2;
-  @apply rounded-lg shadow-md;
   @apply p-4;
-  @apply transition-colors duration-200;
-  background-color: #ffffff;
 }
 
-:global(.dark) .navCard {
-  background-color: #000000;
-}
-
-.navLink {
+.nav-link {
   @apply px-6 py-3;
-  @apply text-neutral-700;
-  @apply hover:text-primary hover:bg-secondary;
   @apply rounded-lg;
   @apply transition-all duration-200;
   @apply font-medium;
   @apply no-underline;
+  color: var(--text-secondary);
 }
 
-:global(.dark) .navLink {
-  color: #ffffff;
+.nav-link:hover:not(:global(.active)) {
+  color: var(--primary-color);
+  background-color: var(--secondary-color);
 }
 
-.navLink:global(.active) {
-  @apply bg-primary text-primary-foreground;
-  @apply hover:bg-primary-dark;
+.nav-link:global(.active) {
+  background-color: var(--primary-color);
+  color: var(--primary-foreground);
+}
+
+.nav-link:global(.active):hover {
+  background-color: var(--primary-color);
+  color: var(--primary-foreground);
 }
 
 /* Bottom Card - Content */
-.contentCard {
-  @apply rounded-lg shadow-md;
+/* Uses global card-container utility for consistent styling */
+.content-card {
   @apply p-8;
-  @apply transition-colors duration-200;
-  background-color: #ffffff;
-}
-
-:global(.dark) .contentCard {
-  background-color: #000000;
 }

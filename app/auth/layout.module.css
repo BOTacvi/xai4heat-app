@@ -3,13 +3,13 @@
  *
  * DESIGN:
  * - Centered layout for authentication forms
- * - Theme-aware background (dirty white / dark)
- * - Supports dark mode
+ * - Theme-aware background using CSS variables
+ * - Supports dark mode automatically via CSS variables
  * - Max width for readability
  * - Vertically and horizontally centered
  */
 
-.authLayout {
+.auth-layout {
   @apply min-h-screen;
   @apply flex items-center justify-center;
   @apply transition-colors duration-200;
@@ -17,7 +17,7 @@
   background-color: var(--bg-app);
 }
 
-.authContainer {
+.auth-container {
   @apply w-full;
   max-width: 400px;
 }

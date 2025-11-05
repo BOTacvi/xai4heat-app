@@ -61,9 +61,9 @@
     --secondary-hover: rgba(34, 197, 94, 0.25);
 
     /* Background colors */
-    --bg-app: #1b1b1b; /* very dark grey - main app background */
-    --bg-card: #000000; /* pure black - cards, navigation, header background */
-    --bg-nav: #000000; /* pure black - navigation background */
+    --bg-app: #121212; /* very dark grey - main app background */
+    --bg-card: #1e1e1e; /* lighter grey - cards, navigation, header background */
+    --bg-nav: #1e1e1e; /* lighter grey - navigation background */
 
     /* Text colors */
     --text-primary: #ffffff; /* pure white for better contrast on black */
@@ -111,19 +111,23 @@
     @apply p-6 rounded-lg;
     @apply transition-shadow duration-200;
     background-color: var(--bg-card);
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08),
+      0 2px 8px -2px rgba(0, 0, 0, 0.04);
   }
 
   .card-container:hover {
-    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12),
+      0 4px 12px -2px rgba(0, 0, 0, 0.08);
   }
 
   :global(.dark) .card-container {
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.4),
+      0 2px 8px -2px rgba(0, 0, 0, 0.3);
   }
 
   :global(.dark) .card-container:hover {
-    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5),
+      0 4px 12px -2px rgba(0, 0, 0, 0.4);
   }
 
   /* ==================== PAGE LAYOUT STYLES ==================== */
@@ -218,4 +222,33 @@
 /* Icon colors for react-hot-toast */
 .react-hot-toast svg {
   color: white !important;
+}
+
+/* ============================================
+   DATEPICKER COLOR OVERRIDE (react-day-picker)
+   Set CSS variables to use our green primary color
+   ============================================ */
+.rdp {
+  --rdp-accent-color: #16a34a !important;
+  --rdp-background-color: #16a34a !important;
+  /* Override default blue accent in navigation */
+  --rdp-accent-color-dark: #15803d !important;
+  /* Today indicator color */
+  --rdp-today-color: #16a34a !important;
+  /* Selected day border */
+  --rdp-selected-border: 2px solid #16a34a !important;
+}
+
+:global(.dark) .rdp {
+  --rdp-accent-color: #22c55e !important;
+  --rdp-background-color: #22c55e !important;
+  --rdp-accent-color-dark: #16a34a !important;
+  /* Today indicator color for dark mode */
+  --rdp-today-color: #22c55e !important;
+  /* Selected day border for dark mode */
+  --rdp-selected-border: 2px solid #22c55e !important;
+}
+
+.rdp-day_button {
+  --rdp-selected-border: 2px solid #16a34a !important;
 }

@@ -3,9 +3,11 @@
 }
 
 .subtitle {
-  @apply text-2xl font-semibold text-gray-900 mb-2;
+  @apply text-2xl font-semibold mb-2;
+  color: var(--text-primary);
 }
 
 .description {
-  @apply text-gray-600 mb-6;
+  @apply mb-6;
+  color: var(--text-secondary);
 }

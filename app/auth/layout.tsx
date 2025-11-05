@@ -25,19 +25,13 @@ import styles from './layout.module.css'
 
 type AuthLayoutProps = {
   children: React.ReactNode
-  className?: string
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children, className }) => {
-  const layoutClasses = clsx(
-    styles.authLayout,
-    className
-  )
-
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
-    <div className={layoutClasses}>
+    <div className={styles['auth-layout']}>
       {/* COMMENT: Centered container for auth forms */}
-      <div className={styles.authContainer}>
+      <div className={styles['auth-container']}>
         {children}
       </div>
     </div>

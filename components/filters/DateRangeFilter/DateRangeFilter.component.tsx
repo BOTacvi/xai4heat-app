@@ -1,14 +1,15 @@
 /**
  * DateRangeFilter Component
  *
- * Date range selector with preset options (Week, Year, Custom)
+ * Date range selector with preset options (Week, Month, Year, Custom)
+ * Uses custom DatePicker component for full styling control
  */
 
 'use client'
 
 import React, { useState } from 'react'
 import { Select, SelectOption } from '@/components/fields/Select'
-import { Input } from '@/components/fields/Input'
+import { DatePicker } from '@/components/fields/DatePicker'
 import styles from './DateRangeFilter.module.css'
 
 export type DateRange = {
@@ -67,18 +68,18 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     onChange({ from, to })
   }
 
-  const handleCustomDateChange = (field: 'from' | 'to', dateValue: string) => {
-    // Convert date input (YYYY-MM-DD) to ISO string
-    const isoValue = new Date(dateValue).toISOString()
+  const handleCustomDateChange = (field: 'from' | 'to', date: Date | undefined) => {
+    if (!date) return
+
+    const isoValue = date.toISOString()
     onChange({
       ...value,
       [field]: isoValue,
     })
   }
 
-  const formatDateForInput = (isoString: string): string => {
-    // Convert ISO string to YYYY-MM-DD format for date input
-    return isoString.split('T')[0]
+  const parseISOtoDate = (isoString: string): Date => {
+    return new Date(isoString)
   }
 
   const isCustomRange = preset === 'custom'
@@ -93,19 +94,17 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
         fullWidth
       />
       <div className={styles.dateInputs}>
-        <Input
+        <DatePicker
           label="From"
-          type="date"
-          value={formatDateForInput(value.from)}
-          onChange={(e) => handleCustomDateChange('from', e.target.value)}
+          value={parseISOtoDate(value.from)}
+          onChange={(date) => handleCustomDateChange('from', date)}
           disabled={!isCustomRange}
           fullWidth
         />
-        <Input
+        <DatePicker
           label="To"
-          type="date"
-          value={formatDateForInput(value.to)}
-          onChange={(e) => handleCustomDateChange('to', e.target.value)}
+          value={parseISOtoDate(value.to)}
+          onChange={(date) => handleCustomDateChange('to', date)}
           disabled={!isCustomRange}
           fullWidth
         />

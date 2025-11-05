@@ -84,3 +84,28 @@
 .input.error:not(:disabled):hover {
   @apply border-red-600 dark:border-red-500;
 }
+
+/* Autofill styles - light green background for both themes */
+/* Apply to all input types including password */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input[type="password"]:-webkit-autofill,
+.input[type="password"]:-webkit-autofill:hover,
+.input[type="password"]:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(22, 163, 74, 0.1) inset !important;
+  -webkit-text-fill-color: #171717 !important;
+  border-color: rgba(22, 163, 74, 0.3) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+:global(.dark) .input:-webkit-autofill,
+:global(.dark) .input:-webkit-autofill:hover,
+:global(.dark) .input:-webkit-autofill:focus,
+:global(.dark) .input[type="password"]:-webkit-autofill,
+:global(.dark) .input[type="password"]:-webkit-autofill:hover,
+:global(.dark) .input[type="password"]:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(34, 197, 94, 0.35) inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+}

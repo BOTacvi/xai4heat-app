@@ -13,21 +13,21 @@
  * - Classes: kebab-case (global-header)
  */
 
-'use client'
+"use client";
 
-import clsx from "clsx"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/contexts/AuthContext"
-import { Button } from "@/components/atoms/Button"
-import styles from "./GlobalHeader.module.css"
+import clsx from "clsx";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { Button } from "@/components/atoms/Button";
+import styles from "./GlobalHeader.module.css";
 
 type GlobalHeaderProps = {
-  className?: string
-}
+  className?: string;
+};
 
 const GlobalHeader: React.FC<GlobalHeaderProps> = ({ className }) => {
-  const router = useRouter()
-  const { user, logout } = useAuth()
+  const router = useRouter();
+  const { logout } = useAuth();
 
   /**
    * Handle logout
@@ -41,29 +41,23 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({ className }) => {
    * 6. Layout automatically removes navigation (user is on /auth/* route)
    */
   const handleLogout = async () => {
-    await logout()
+    await logout();
 
     // COMMENT: Navigate to login page
     // This triggers the layout change - navigation disappears automatically
-    router.push('/auth/login')
+    router.push("/auth/login");
 
     // COMMENT: Refresh to ensure middleware runs
-    router.refresh()
-  }
+    router.refresh();
+  };
 
   // COMMENT: Compose classes following our pattern
-  const headerClasses = clsx(
-    styles.globalHeader,
-    className
-  )
+  const headerClasses = clsx(styles.globalHeader, className);
 
   return (
     <header className={headerClasses}>
       <div className={styles.left}>
         <h1 className={styles.title}>Thermionix</h1>
-        {user && (
-          <span className={styles.userEmail}>{user.email}</span>
-        )}
       </div>
       <Button
         onClick={handleLogout}
@@ -73,7 +67,7 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({ className }) => {
         Logout
       </Button>
     </header>
-  )
-}
+  );
+};
 
-export default GlobalHeader
+export default GlobalHeader;
