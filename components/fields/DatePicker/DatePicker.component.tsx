@@ -101,15 +101,20 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         </div>
 
         {isOpen && !disabled && (
-          <div className={styles.dropdown}>
-            <DayPicker
-              mode="single"
-              selected={value}
-              onSelect={handleSelect}
-              showOutsideDays={false}
-              disabled={disabledDays}
-            />
-          </div>
+          <>
+            {/* Mobile backdrop */}
+            <div className={styles.backdrop} onClick={() => setIsOpen(false)} />
+
+            <div className={styles.dropdown}>
+              <DayPicker
+                mode="single"
+                selected={value}
+                onSelect={handleSelect}
+                showOutsideDays={false}
+                disabled={disabledDays}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -18,6 +18,7 @@
 
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/server'
+import Image from 'next/image'
 import LoginForm from './components/LoginForm'
 import styles from './Login.module.css'
 
@@ -44,10 +45,22 @@ const LoginPage: React.FC<LoginPageProps> = async () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        {/* Logo */}
+        <div className={styles.logoContainer}>
+          <Image
+            src="/xai4heat-logo.png"
+            alt="xai4heat"
+            width={200}
+            height={60}
+            priority
+            className={styles.logo}
+          />
+        </div>
+
         <div className={styles.header}>
           <h1 className={styles.title}>Welcome Back</h1>
           <p className={styles.subtitle}>
-            Sign in to access your Thermionix dashboard
+            Sign in to access your xai4heat dashboard
           </p>
         </div>
 

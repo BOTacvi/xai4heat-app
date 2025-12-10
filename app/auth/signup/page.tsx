@@ -4,6 +4,7 @@
 
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/server'
+import Image from 'next/image'
 import SignupForm from './components/SignupForm'
 import styles from './Signup.module.css'
 
@@ -20,10 +21,22 @@ const SignupPage: React.FC<SignupPageProps> = async () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        {/* Logo */}
+        <div className={styles.logoContainer}>
+          <Image
+            src="/xai4heat-logo.png"
+            alt="xai4heat"
+            width={200}
+            height={60}
+            priority
+            className={styles.logo}
+          />
+        </div>
+
         <div className={styles.header}>
           <h1 className={styles.title}>Create Account</h1>
           <p className={styles.subtitle}>
-            Start monitoring your Thermionix devices
+            Start monitoring your heating devices
           </p>
         </div>
 

@@ -7,30 +7,51 @@
  * - Below header: sidebar navigation + main content fill remaining space
  * - Sidebar navigation on left (white background in light, #181818 in dark)
  * - Main content on right (transparent to show app background)
- * - Main content has padding p-12 (3rem)
+ * - Main content has padding p-12 (3rem) on desktop
  * - App background is dirty white/dark (from body bg in globals.css)
  * - No unnecessary scrolling - content uses available space
+ *
+ * RESPONSIVE:
+ * - Mobile (<768px): Sidebar overlays content, hamburger menu
+ * - Tablet (768-1024px): Reduced padding
+ * - Desktop (>1024px): Full sidebar always visible
  */
 
 /* Root wrapper - fills viewport height */
-.dashboardWrapper {
+.dashboard-wrapper {
   @apply flex flex-col;
   @apply h-screen; /* Full viewport height */
   @apply overflow-hidden; /* Prevent outer scroll */
 }
 
 /* Container for navigation + main content */
-.dashboardLayoutContainer {
+.dashboard-layout-container {
   @apply flex flex-1;
   @apply overflow-hidden; /* Content scrolls inside main, not here */
+  @apply relative; /* For absolute positioned mobile nav */
 }
 
 /* Main content area */
-.dashboardMain {
+.dashboard-main {
   @apply flex flex-col flex-1;
-  @apply p-12; /* 3rem padding around main content */
+  @apply p-8; /* 2rem padding around main content */
   @apply overflow-y-auto; /* Only main content scrolls */
 
   /* Transparent background to show app background (dirty white/dark) */
   @apply bg-transparent;
+}
+
+/* Tablet: Reduce padding */
+@media (max-width: 1023px) {
+  .dashboard-main {
+    @apply p-5; /* 1.25rem padding */
+  }
+}
+
+/* Mobile: Minimal padding, full width */
+@media (max-width: 767px) {
+  .dashboard-main {
+    @apply p-3; /* 0.75rem (12px) padding - maximize screen space */
+    @apply w-full;
+  }
 }

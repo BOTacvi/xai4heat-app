@@ -143,6 +143,27 @@
     color: var(--text-primary);
   }
 
+  /* ==================== RESPONSIVE PADDING ==================== */
+  /* Tablet: Reduce padding */
+  @media (max-width: 1023px) {
+    .card-container {
+      @apply p-5;
+    }
+    .page-container {
+      @apply p-5 gap-5;
+    }
+  }
+
+  /* Mobile: Minimal padding */
+  @media (max-width: 767px) {
+    .card-container {
+      @apply p-4; /* Reduced from p-6 to p-4 (1rem) */
+    }
+    .page-container {
+      @apply p-4 gap-4;
+    }
+  }
+
   /* Loading text */
   .loading-text {
     @apply text-base;

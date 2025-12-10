@@ -29,6 +29,15 @@
     0 4px 16px -2px rgba(0, 0, 0, 0.4);
 }
 
+.logoContainer {
+  @apply flex justify-center mb-8;
+}
+
+.logo {
+  @apply object-contain;
+  height: auto;
+}
+
 .header {
   @apply mb-8 text-center;
 }

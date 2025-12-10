@@ -52,6 +52,7 @@
 
 /* Bottom Card - Content */
 /* Uses global card-container utility for consistent styling */
+/* No extra padding - card-container class already provides p-6 (responsive) */
 .content-card {
-  @apply p-8;
+  /* Padding handled by card-container class */
 }

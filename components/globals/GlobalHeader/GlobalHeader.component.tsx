@@ -2,11 +2,10 @@
  * GlobalHeader Component - Client Component
  *
  * LEARNING: Why Client Component?
- * - Needs to call logout() from AuthContext
- * - useAuth() hook can only be used in Client Components
+ * - Hamburger menu toggle (mobile)
  * - Button needs onClick handler (interactivity)
  *
- * Main application header with title, user email, and logout button
+ * Main application header with title and hamburger menu (mobile)
  * Following claude.md conventions:
  * - Type: GlobalHeaderProps
  * - Pattern: React.FC<PropsType>
@@ -16,56 +15,43 @@
 "use client";
 
 import clsx from "clsx";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/contexts/AuthContext";
-import { Button } from "@/components/atoms/Button";
+import Image from "next/image";
+import { Menu } from "lucide-react";
 import styles from "./GlobalHeader.module.css";
 
 type GlobalHeaderProps = {
   className?: string;
+  onMenuToggle: () => void;
 };
 
-const GlobalHeader: React.FC<GlobalHeaderProps> = ({ className }) => {
-  const router = useRouter();
-  const { logout } = useAuth();
-
-  /**
-   * Handle logout
-   *
-   * LEARNING: Logout flow
-   * 1. Call logout() from AuthContext
-   * 2. Supabase clears auth cookie
-   * 3. AuthContext listener updates state to user=null
-   * 4. Router pushes to /auth/login
-   * 5. Middleware ensures user can't access /dashboard/* anymore
-   * 6. Layout automatically removes navigation (user is on /auth/* route)
-   */
-  const handleLogout = async () => {
-    await logout();
-
-    // COMMENT: Navigate to login page
-    // This triggers the layout change - navigation disappears automatically
-    router.push("/auth/login");
-
-    // COMMENT: Refresh to ensure middleware runs
-    router.refresh();
-  };
-
+const GlobalHeader: React.FC<GlobalHeaderProps> = ({
+  className,
+  onMenuToggle,
+}) => {
   // COMMENT: Compose classes following our pattern
-  const headerClasses = clsx(styles.globalHeader, className);
+  const headerClasses = clsx(styles["global-header"], className);
 
   return (
     <header className={headerClasses}>
+      {/* Hamburger button (mobile only) */}
+
       <div className={styles.left}>
-        <h1 className={styles.title}>Thermionix</h1>
+        <Image
+          src="/xai4heat-logo-small.png"
+          alt="xai4heat"
+          width={50}
+          height={50}
+          className={styles.logoSmall}
+        />
       </div>
-      <Button
-        onClick={handleLogout}
-        variant="secondary"
-        className={styles.logoutButton}
+      <button
+        className={styles.hamburger}
+        onClick={onMenuToggle}
+        aria-label="Open menu"
+        type="button"
       >
-        Logout
-      </Button>
+        <Menu size={24} />
+      </button>
     </header>
   );
 };

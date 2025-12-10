@@ -11,41 +11,81 @@
  * - Subtle shadow for elevation
  * - White text in dark mode for high contrast
  * - Primary green for logout button
+ * - Hamburger menu on mobile
  *
  * LAYOUT:
  * - Flexbox horizontal layout with space-between
- * - Left side: title + user email
- * - Right side: logout button
+ * - Mobile: Hamburger + title + logout
+ * - Desktop: Title + logout
  */
 
-.globalHeader {
+.global-header {
   @apply flex items-center justify-between;
   @apply px-6 py-4;
   @apply transition-colors duration-200;
   @apply shadow-sm;
+  @apply relative;
   background-color: var(--bg-card);
+  min-height: 64px;
+}
+
+.hamburger {
+  @apply items-center justify-center;
+  @apply w-12 h-12;
+  @apply bg-transparent border-none;
+  @apply cursor-pointer rounded-lg;
+  @apply transition-colors duration-200;
+  color: var(--text-primary);
+  display: none !important; /* Hidden on desktop - !important to override */
+}
+
+.hamburger:hover {
+  background-color: var(--secondary-color);
+}
+
+.hamburger:active {
+  background-color: var(--secondary-hover);
 }
 
 .left {
   @apply flex items-center gap-4;
+  @apply flex-1;
+}
+
+.logoSmall {
+  @apply object-contain;
+  height: auto;
 }
 
 .title {
   @apply text-xl font-semibold;
-  @apply text-neutral-900;
+  color: var(--text-primary);
 }
 
-:global(.dark) .title {
-  color: #ffffff;
-}
-
-.userEmail {
+.user-email {
   @apply text-sm;
   color: var(--text-secondary);
 }
 
-.logoutButton {
+.logout-button {
   /* Button component handles most styling via variant="secondary" */
   /* This class allows parent-specific overrides if needed */
   border-color: currentColor !important;
+}
+
+/* Mobile: Show hamburger on the right, adjust layout */
+@media (max-width: 767px) {
+  .global-header {
+    @apply px-4;
+  }
+
+  .hamburger {
+    display: flex !important; /* Override desktop display: none */
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .title {
+    @apply text-lg;
+  }
 }

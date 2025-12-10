@@ -36,10 +36,20 @@
   @apply cursor-pointer;
   background-color: #ffffff;
   color: #171717;
+  min-height: 40px; /* Desktop */
 }
 
 .input:hover:not(.disabled) {
   @apply border-neutral-400;
+}
+
+/* Mobile: Increase touch target size */
+@media (max-width: 767px) {
+  .input {
+    min-height: 48px; /* Touch target minimum */
+    @apply py-3; /* Increase padding */
+    font-size: 16px; /* Prevent iOS zoom */
+  }
 }
 
 .input.disabled {
@@ -90,6 +100,44 @@
 :global(.dark) .dropdown {
   background-color: #1a1a1a;
   border-color: rgb(64, 64, 64);
+}
+
+/* Backdrop - hidden on desktop */
+.backdrop {
+  display: none;
+}
+
+/* Mobile: Fixed at bottom for better thumb accessibility */
+@media (max-width: 767px) {
+  .backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 49; /* Below dropdown (z-50) */
+  }
+
+  .dropdown {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    width: 100%;
+    margin: 0;
+    border-radius: 1rem 1rem 0 0; /* Rounded top corners only */
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    max-height: 70vh; /* Don't take full screen */
+    overflow-y: auto;
+    z-index: 50; /* Above backdrop */
+  }
+
+  :global(.dark) .dropdown {
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
 }
 
 /* ============================================

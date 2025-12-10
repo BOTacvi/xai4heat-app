@@ -11,12 +11,18 @@
  * - Secondary green hover state
  * - White text in dark mode for high contrast
  * - Theme toggle at bottom
+ *
+ * RESPONSIVE:
+ * - Desktop (>768px): Fixed sidebar, always visible
+ * - Mobile (<768px): Overlay sidebar, slides in from left
  */
 
-.globalNavigation {
+/* Desktop (default) */
+.global-navigation {
   @apply flex flex-col;
   @apply transition-colors duration-200;
   @apply p-4;
+  @apply relative;
   flex: 0 0 280px;
   height: 100%; /* Fill parent height */
   background-color: var(--bg-nav);
@@ -30,10 +36,12 @@
 .link {
   @apply flex items-center gap-3;
   @apply px-4 py-3;
-  @apply text-neutral-700;
   @apply transition-all duration-200;
   @apply rounded-lg;
   @apply font-medium;
+  @apply no-underline;
+  color: var(--text-secondary);
+  min-height: 48px;
 }
 
 .link:hover:not(.active) {
@@ -41,17 +49,9 @@
   color: var(--primary-color);
 }
 
-:global(.dark) .link {
-  color: #ffffff;
-}
-
-:global(.dark) .link:hover:not(.active) {
-  background-color: var(--secondary-color);
-  color: var(--primary-color);
-}
-
 .active {
-  @apply bg-primary text-primary-foreground;
+  background-color: var(--primary-color);
+  color: var(--primary-foreground);
 }
 
 /* Active link should not change on hover */
@@ -63,11 +63,113 @@
 .icon {
   @apply w-5 h-5;
   @apply flex-shrink-0;
+  pointer-events: none; /* Allow clicks to pass through to parent Link */
 }
 
-/* Theme toggle container at bottom */
-.themeToggleContainer {
-  @apply mt-auto; /* Push to bottom */
+/* Ensure text also doesn't block link clicks */
+.link > span {
+  pointer-events: none;
+}
+
+/* Logout link - styled as underlined text link */
+.logout-link {
+  @apply flex items-center gap-2;
+  @apply px-3 py-2;
+  @apply transition-all duration-200;
+  @apply rounded-lg;
+  @apply font-medium;
+  @apply bg-transparent border-none cursor-pointer;
+  @apply text-sm;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  min-height: 44px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.logout-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.logout-link > span {
+  pointer-events: none;
+}
+
+/* Bottom row: Logout + Theme toggle side by side */
+.bottom-row {
   @apply pt-4;
-  @apply flex justify-center;
+  @apply flex items-center justify-between;
+  @apply gap-4;
+}
+
+/* Close button - hidden on desktop */
+.close-button {
+  display: none;
+}
+
+/* Backdrop - hidden on desktop */
+.backdrop {
+  display: none;
+}
+
+/* Mobile: Overlay behavior */
+@media (max-width: 767px) {
+  .global-navigation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    padding-top: 3.5rem; /* Space for close button */
+  }
+
+  .mobile-open {
+    transform: translateX(0);
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .close-button {
+    display: flex;
+    @apply items-center justify-center;
+    @apply w-12 h-12;
+    @apply bg-transparent border-none;
+    @apply cursor-pointer rounded-lg;
+    @apply transition-colors duration-200;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    color: var(--text-primary);
+    z-index: 10;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .close-button:hover {
+    background-color: var(--secondary-color);
+  }
+
+  .close-button:active {
+    background-color: var(--secondary-hover);
+  }
+
+  .link {
+    min-height: 52px;
+    @apply px-4 py-4;
+  }
 }

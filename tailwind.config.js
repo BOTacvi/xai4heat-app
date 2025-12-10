@@ -3,6 +3,14 @@ module.exports = {
   darkMode: "class", // Enable dark mode via class on html element
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
+    screens: {
+      // Mobile-first breakpoints (min-width)
+      sm: "640px",   // Small devices
+      md: "768px",   // Tablets (portrait)
+      lg: "1024px",  // Desktop
+      xl: "1280px",  // Large desktop
+      "2xl": "1536px", // Extra large desktop
+    },
     extend: {
       colors: {
         // Primary green color (main brand color)

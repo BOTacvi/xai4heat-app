@@ -34,6 +34,19 @@
   background-color: var(--bg-card);
 }
 
+/* Mobile: Single column, reduced padding and gap */
+@media (max-width: 767px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem; /* Reduce gap on mobile */
+  }
+
+  .card {
+    @apply p-6; /* Reduce card padding on mobile */
+    min-height: 150px;
+  }
+}
+
 .card:hover {
   @apply shadow-lg;
   @apply scale-105;

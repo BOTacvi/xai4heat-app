@@ -18,14 +18,30 @@
 /* Size variants */
 .small {
   @apply px-3 py-1.5 text-sm;
+  min-height: 36px; /* Desktop: smaller is ok */
 }
 
 .medium {
   @apply px-4 py-2 text-base;
+  min-height: 40px; /* Desktop */
 }
 
 .large {
   @apply px-6 py-3 text-lg;
+  min-height: 48px;
+}
+
+/* Mobile: Ensure all buttons meet 48px touch target minimum */
+@media (max-width: 767px) {
+  .small,
+  .medium {
+    min-height: 48px; /* Touch target minimum */
+    @apply py-3; /* Increase padding for better touch area */
+  }
+
+  .large {
+    min-height: 52px; /* Slightly larger on mobile */
+  }
 }
 
 /* Color variants - Theme-based colors only */

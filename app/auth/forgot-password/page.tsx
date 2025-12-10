@@ -16,6 +16,7 @@
 
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/server'
+import Image from 'next/image'
 import ForgotPasswordForm from './components/ForgotPasswordForm'
 import styles from './ForgotPassword.module.css'
 
@@ -32,6 +33,18 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = async () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        {/* Logo */}
+        <div className={styles.logoContainer}>
+          <Image
+            src="/xai4heat-logo.png"
+            alt="xai4heat"
+            width={200}
+            height={60}
+            priority
+            className={styles.logo}
+          />
+        </div>
+
         <div className={styles.header}>
           <h1 className={styles.title}>Reset Password</h1>
           <p className={styles.subtitle}>

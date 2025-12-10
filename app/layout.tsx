@@ -51,8 +51,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Thermionix",
-  description: "Keep track of your Thermionix devices",
+  title: "xai4heat",
+  description: "Keep track of your heating and monitoring devices",
 }
 
 /**

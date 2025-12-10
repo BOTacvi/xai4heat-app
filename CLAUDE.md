@@ -1,5 +1,28 @@
 # Component Architecture Guidelines
 
+## 0. Mobile-First Responsive Design
+
+**CRITICAL: ALL new features and components MUST be tested and optimized for mobile from the start.**
+
+### Responsive Design Principles:
+- **Test on all viewports**: Mobile (<768px), Tablet (768-1023px), Desktop (>1024px)
+- **Mobile-first approach**: Design for mobile first, then enhance for larger screens
+- **Touch targets**: Minimum 48x48px for all interactive elements on mobile
+- **Fixed bottom sheets**: Use fixed bottom positioning for mobile dropdowns/pickers (better thumb accessibility)
+- **Responsive padding**: Use progressive padding (smaller on mobile, larger on desktop)
+  - Mobile: `p-3` to `p-4`
+  - Tablet: `p-5`
+  - Desktop: `p-6` to `p-8`
+- **Test interactions**: Ensure hover states don't break touch interactions
+- **Mobile navigation**: Use overlay/drawer patterns for mobile menus
+
+### Before Completing Any Feature:
+1. ✅ Desktop view works and looks good
+2. ✅ Tablet view works and looks good
+3. ✅ Mobile view works and looks good
+4. ✅ Touch interactions work properly
+5. ✅ No horizontal scrolling on any viewport
+
 ## 1. Component Organization
 
 ### Global Components (src/components)

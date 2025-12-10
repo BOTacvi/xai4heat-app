@@ -17,7 +17,7 @@
 
 .loadingContainer {
   @apply flex items-center justify-center;
-  height: 300px;
+  /* Height set dynamically via inline style for responsiveness */
 }
 
 .loadingText {

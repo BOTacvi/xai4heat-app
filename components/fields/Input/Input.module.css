@@ -35,6 +35,16 @@
   @apply disabled:cursor-not-allowed disabled:opacity-60;
   background-color: #ffffff;
   color: #171717;
+  min-height: 40px; /* Desktop */
+}
+
+/* Mobile: Increase touch target size */
+@media (max-width: 767px) {
+  .input {
+    min-height: 48px; /* Touch target minimum */
+    @apply py-3; /* Increase padding */
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
 }
 
 .input:disabled {
