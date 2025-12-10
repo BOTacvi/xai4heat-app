@@ -10,7 +10,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Select, SelectOption } from "@/components/fields/Select";
 import { MetricCard } from "@/components/cards/MetricCard";
 import {
@@ -32,17 +33,36 @@ type ScadaMeasurement = {
 };
 
 export default function ScadaPage() {
-  const [lamelas, setLamelas] = useState<string[]>([]);
-  const [selectedLamela, setSelectedLamela] = useState<string>("");
-  const [measurements, setMeasurements] = useState<ScadaMeasurement[]>([]);
-  const [isLoadingLamelas, setIsLoadingLamelas] = useState(true);
-  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
-  const [expectedTempMin, setExpectedTempMin] = useState<number>(18);
-  const [expectedTempMax, setExpectedTempMax] = useState<number>(24);
-  const [expectedPressureMin, setExpectedPressureMin] = useState<number>(0);
-  const [expectedPressureMax, setExpectedPressureMax] = useState<number>(5);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const getLastWeekRange = (): DateRange => {
+  // Read selected lamela directly from URL params
+  const selectedLamela = searchParams.get("lamela") || "";
+
+  // Read date range from URL params (or use defaults) - memoized to prevent infinite loops
+  const dateRange = useMemo((): DateRange => {
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+
+    // If URL has valid date params, use them
+    if (fromParam && toParam) {
+      try {
+        const fromDate = new Date(fromParam);
+        const toDate = new Date(toParam);
+
+        // Validate dates
+        if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())) {
+          return {
+            from: fromParam, // Use the param directly to avoid re-creating ISO strings
+            to: toParam,
+          };
+        }
+      } catch (error) {
+        console.warn("Invalid date params in URL:", error);
+      }
+    }
+
+    // Default: last 7 days
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -50,9 +70,16 @@ export default function ScadaPage() {
       from: weekAgo.toISOString(),
       to: now.toISOString(),
     };
-  };
+  }, [searchParams]);
 
-  const [dateRange, setDateRange] = useState<DateRange>(getLastWeekRange());
+  const [lamelas, setLamelas] = useState<string[]>([]);
+  const [measurements, setMeasurements] = useState<ScadaMeasurement[]>([]);
+  const [isLoadingLamelas, setIsLoadingLamelas] = useState(true);
+  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
+  const [expectedTempMin, setExpectedTempMin] = useState<number>(18);
+  const [expectedTempMax, setExpectedTempMax] = useState<number>(24);
+  const [expectedPressureMin, setExpectedPressureMin] = useState<number>(0);
+  const [expectedPressureMax, setExpectedPressureMax] = useState<number>(5);
 
   useEffect(() => {
     const fetchLamelas = async () => {
@@ -78,9 +105,6 @@ export default function ScadaPage() {
           });
 
           setLamelas(uniqueLamelas);
-          if (uniqueLamelas.length > 0) {
-            setSelectedLamela(uniqueLamelas[0]);
-          }
         }
       } catch (error) {
         console.error("Failed to fetch lamelas:", error);
@@ -138,6 +162,38 @@ export default function ScadaPage() {
     fetchMeasurements();
   }, [selectedLamela, dateRange]);
 
+  // Handle lamela selection change - write directly to URL, preserve date range
+  const handleLamelaChange = (newLamela: string) => {
+    const params = new URLSearchParams();
+
+    if (newLamela) {
+      params.set("lamela", newLamela);
+    }
+
+    // Always preserve date range in URL
+    params.set("from", dateRange.from);
+    params.set("to", dateRange.to);
+
+    const newURL = `/dashboard/scada?${params.toString()}`;
+    router.push(newURL);
+  };
+
+  // Handle date range change - write directly to URL, preserve lamela
+  const handleDateRangeChange = (newDateRange: DateRange) => {
+    const params = new URLSearchParams();
+
+    if (selectedLamela) {
+      params.set("lamela", selectedLamela);
+    }
+
+    // Update with new date range
+    params.set("from", newDateRange.from);
+    params.set("to", newDateRange.to);
+
+    const newURL = `/dashboard/scada?${params.toString()}`;
+    router.push(newURL);
+  };
+
   const lamelaOptions: SelectOption[] = lamelas.map((lamela) => ({
     label: lamela,
     value: lamela,
@@ -170,7 +226,7 @@ export default function ScadaPage() {
             label="Select Lamela"
             options={lamelaOptions}
             value={selectedLamela}
-            onChange={(value) => setSelectedLamela(String(value))}
+            onChange={(value) => handleLamelaChange(String(value))}
             placeholder="Choose a lamela"
             fullWidth
           />
@@ -195,7 +251,7 @@ export default function ScadaPage() {
           </div>
 
           <div className="grid-item">
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
           </div>
 
           <div className="grid-item-full-width">

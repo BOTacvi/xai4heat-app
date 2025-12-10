@@ -7,7 +7,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { MetricCard } from "@/components/cards/MetricCard";
 import {
   DateRangeFilter,
@@ -32,10 +33,33 @@ type WeatherLinkMeasurement = {
 };
 
 export default function WeatherLinkPage() {
-  const [measurements, setMeasurements] = useState<WeatherLinkMeasurement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const getLastWeekRange = (): DateRange => {
+  // Read date range from URL params (or use defaults) - memoized to prevent infinite loops
+  const dateRange = useMemo((): DateRange => {
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+
+    // If URL has valid date params, use them
+    if (fromParam && toParam) {
+      try {
+        const fromDate = new Date(fromParam);
+        const toDate = new Date(toParam);
+
+        // Validate dates
+        if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())) {
+          return {
+            from: fromParam, // Use the param directly to avoid re-creating ISO strings
+            to: toParam,
+          };
+        }
+      } catch (error) {
+        console.warn("Invalid date params in URL:", error);
+      }
+    }
+
+    // Default: last 7 days
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -43,9 +67,10 @@ export default function WeatherLinkPage() {
       from: weekAgo.toISOString(),
       to: now.toISOString(),
     };
-  };
+  }, [searchParams]);
 
-  const [dateRange, setDateRange] = useState<DateRange>(getLastWeekRange());
+  const [measurements, setMeasurements] = useState<WeatherLinkMeasurement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMeasurements = async () => {
@@ -70,6 +95,18 @@ export default function WeatherLinkPage() {
     fetchMeasurements();
   }, [dateRange]);
 
+  // Handle date range change - write directly to URL
+  const handleDateRangeChange = (newDateRange: DateRange) => {
+    const params = new URLSearchParams();
+
+    // Update with new date range
+    params.set("from", newDateRange.from);
+    params.set("to", newDateRange.to);
+
+    const newURL = `/dashboard/weatherlink?${params.toString()}`;
+    router.push(newURL);
+  };
+
   const latest = measurements.length > 0 ? measurements[0] : null;
   const latestTimestamp = latest?.datetime;
 
@@ -86,7 +123,7 @@ export default function WeatherLinkPage() {
       <h1 className={styles.title}>WeatherLink Monitoring</h1>
 
       {/* Date Range Filter in Card */}
-      <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
 
       {/* Main Content Grid */}
       <div className={styles.contentGrid}>

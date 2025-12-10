@@ -10,7 +10,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Select, SelectOption } from "@/components/fields/Select";
 import { MetricCard } from "@/components/cards/MetricCard";
 import {
@@ -40,19 +41,36 @@ type ThermionixMeasurement = {
 };
 
 export default function ThermionixPage() {
-  // State
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
-  const [measurements, setMeasurements] = useState<ThermionixMeasurement[]>([]);
-  const [isLoadingDevices, setIsLoadingDevices] = useState(true);
-  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
-  const [expectedTempMin, setExpectedTempMin] = useState<number>(18);
-  const [expectedTempMax, setExpectedTempMax] = useState<number>(24);
-  const [expectedHumidityMin, setExpectedHumidityMin] = useState<number>(30);
-  const [expectedHumidityMax, setExpectedHumidityMax] = useState<number>(60);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Date range with default to last week
-  const getLastWeekRange = (): DateRange => {
+  // Read selected apartment directly from URL params
+  const selectedDeviceId = searchParams.get("apartment") || "";
+
+  // Read date range from URL params (or use defaults) - memoized to prevent infinite loops
+  const dateRange = useMemo((): DateRange => {
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+
+    // If URL has valid date params, use them
+    if (fromParam && toParam) {
+      try {
+        const fromDate = new Date(fromParam);
+        const toDate = new Date(toParam);
+
+        // Validate dates
+        if (!isNaN(fromDate.getTime()) && !isNaN(toDate.getTime())) {
+          return {
+            from: fromParam, // Use the param directly to avoid re-creating ISO strings
+            to: toParam,
+          };
+        }
+      } catch (error) {
+        console.warn("Invalid date params in URL:", error);
+      }
+    }
+
+    // Default: last 7 days
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -60,9 +78,17 @@ export default function ThermionixPage() {
       from: weekAgo.toISOString(),
       to: now.toISOString(),
     };
-  };
+  }, [searchParams]);
 
-  const [dateRange, setDateRange] = useState<DateRange>(getLastWeekRange());
+  // State
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [measurements, setMeasurements] = useState<ThermionixMeasurement[]>([]);
+  const [isLoadingDevices, setIsLoadingDevices] = useState(true);
+  const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
+  const [expectedTempMin, setExpectedTempMin] = useState<number>(18);
+  const [expectedTempMax, setExpectedTempMax] = useState<number>(24);
+  const [expectedHumidityMin, setExpectedHumidityMin] = useState<number>(30);
+  const [expectedHumidityMax, setExpectedHumidityMax] = useState<number>(60);
 
   // Fetch devices on mount
   useEffect(() => {
@@ -73,11 +99,6 @@ export default function ThermionixPage() {
 
         console.log("Fetched devices:", data);
         setDevices(data || []);
-
-        // Auto-select first device
-        if (data && data.length > 0) {
-          setSelectedDeviceId(data[0].device_id);
-        }
       } catch (error) {
         console.error("Failed to fetch devices:", error);
       } finally {
@@ -134,6 +155,38 @@ export default function ThermionixPage() {
 
     fetchMeasurements();
   }, [selectedDeviceId, dateRange]);
+
+  // Handle apartment selection change - write directly to URL, preserve date range
+  const handleDeviceChange = (newDeviceId: string) => {
+    const params = new URLSearchParams();
+
+    if (newDeviceId) {
+      params.set("apartment", newDeviceId);
+    }
+
+    // Always preserve date range in URL
+    params.set("from", dateRange.from);
+    params.set("to", dateRange.to);
+
+    const newURL = `/dashboard/thermionix?${params.toString()}`;
+    router.push(newURL);
+  };
+
+  // Handle date range change - write directly to URL, preserve apartment
+  const handleDateRangeChange = (newDateRange: DateRange) => {
+    const params = new URLSearchParams();
+
+    if (selectedDeviceId) {
+      params.set("apartment", selectedDeviceId);
+    }
+
+    // Update with new date range
+    params.set("from", newDateRange.from);
+    params.set("to", newDateRange.to);
+
+    const newURL = `/dashboard/thermionix?${params.toString()}`;
+    router.push(newURL);
+  };
 
   // Prepare device options for select
   const deviceOptions: SelectOption[] = devices
@@ -226,7 +279,7 @@ export default function ThermionixPage() {
             label="Select Apartment"
             options={deviceOptions}
             value={selectedDeviceId}
-            onChange={(value) => setSelectedDeviceId(String(value))}
+            onChange={(value) => handleDeviceChange(String(value))}
             placeholder="Choose an apartment"
             fullWidth
           />
@@ -253,7 +306,7 @@ export default function ThermionixPage() {
 
           {/* Date Range Filter */}
           <div className="grid-item">
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
           </div>
 
           {/* Temperature Chart - Full Width */}
