@@ -7,7 +7,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { MetricCard } from "@/components/cards/MetricCard";
 import {
@@ -20,6 +20,9 @@ import {
 } from "@/components/charts/TimeSeriesChart";
 import { MetricCardSkeleton } from "@/components/skeletons/MetricCardSkeleton";
 import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
+import { ConnectionBadge } from "@/components/realtime/ConnectionBadge";
+import { useWeatherLinkRealtime } from "@/lib/hooks/useWeatherLinkRealtime";
+import type { WeatherLinkMeasurement as RealtimeWeatherLinkMeasurement } from "@/lib/hooks/useWeatherLinkRealtime";
 import styles from "./page.module.css";
 
 type WeatherLinkMeasurement = {
@@ -95,6 +98,23 @@ export default function WeatherLinkPage() {
     fetchMeasurements();
   }, [dateRange]);
 
+  // Handle new measurements from realtime - prepend to existing measurements
+  const handleNewMeasurement = useCallback((newMeasurement: RealtimeWeatherLinkMeasurement) => {
+    setMeasurements(prev => {
+      // Prepend new measurement
+      const updated = [newMeasurement, ...prev];
+
+      // Limit array size to prevent memory issues (keep last 500)
+      return updated.slice(0, 500);
+    });
+  }, []);
+
+  // Subscribe to realtime updates (always enabled for weather station)
+  const { isConnected } = useWeatherLinkRealtime({
+    onNewMeasurement: handleNewMeasurement,
+    enabled: true
+  });
+
   // Handle date range change - write directly to URL
   const handleDateRangeChange = (newDateRange: DateRange) => {
     const params = new URLSearchParams();
@@ -120,7 +140,10 @@ export default function WeatherLinkPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>WeatherLink Monitoring</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 className={styles.title} style={{ margin: 0 }}>WeatherLink Monitoring</h1>
+        <ConnectionBadge isConnected={isConnected} />
+      </div>
 
       {/* Date Range Filter in Card */}
       <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />

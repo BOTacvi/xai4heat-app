@@ -10,7 +10,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Select, SelectOption } from "@/components/fields/Select";
 import { MetricCard } from "@/components/cards/MetricCard";
@@ -24,6 +24,9 @@ import {
 } from "@/components/charts/TimeSeriesChart";
 import { MetricCardSkeleton } from "@/components/skeletons/MetricCardSkeleton";
 import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
+import { ConnectionBadge } from "@/components/realtime/ConnectionBadge";
+import { useSCADARealtime } from "@/lib/hooks/useSCADARealtime";
+import type { SCADAMeasurement as RealtimeSCADAMeasurement } from "@/lib/hooks/useSCADARealtime";
 
 type ScadaMeasurement = {
   datetime: string;
@@ -162,6 +165,24 @@ export default function ScadaPage() {
     fetchMeasurements();
   }, [selectedLamela, dateRange]);
 
+  // Handle new measurements from realtime - prepend to existing measurements
+  const handleNewMeasurement = useCallback((newMeasurement: RealtimeSCADAMeasurement) => {
+    setMeasurements(prev => {
+      // Prepend new measurement
+      const updated = [newMeasurement, ...prev];
+
+      // Limit array size to prevent memory issues (keep last 500)
+      return updated.slice(0, 500);
+    });
+  }, []);
+
+  // Subscribe to realtime updates
+  const { isConnected } = useSCADARealtime({
+    lamela: selectedLamela,
+    onNewMeasurement: handleNewMeasurement,
+    enabled: !!selectedLamela // Only subscribe when lamela selected
+  });
+
   // Handle lamela selection change - write directly to URL, preserve date range
   const handleLamelaChange = (newLamela: string) => {
     const params = new URLSearchParams();
@@ -216,7 +237,10 @@ export default function ScadaPage() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">SCADA Monitoring</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>SCADA Monitoring</h1>
+        {selectedLamela && <ConnectionBadge isConnected={isConnected} />}
+      </div>
 
       <div className="card-container">
         {isLoadingLamelas ? (

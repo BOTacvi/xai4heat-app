@@ -10,7 +10,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Select, SelectOption } from "@/components/fields/Select";
 import { MetricCard } from "@/components/cards/MetricCard";
@@ -24,6 +24,9 @@ import {
 } from "@/components/charts/TimeSeriesChart";
 import { MetricCardSkeleton } from "@/components/skeletons/MetricCardSkeleton";
 import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
+import { ConnectionBadge } from "@/components/realtime/ConnectionBadge";
+import { useThermionixRealtime } from "@/lib/hooks/useThermionixRealtime";
+import type { ThermionixMeasurement as RealtimeThermionixMeasurement } from "@/lib/hooks/useThermionixRealtime";
 
 type Device = {
   device_id: string;
@@ -97,7 +100,6 @@ export default function ThermionixPage() {
         const res = await fetch("/api/devices");
         const data = await res.json();
 
-        console.log("Fetched devices:", data);
         setDevices(data || []);
       } catch (error) {
         console.error("Failed to fetch devices:", error);
@@ -155,6 +157,27 @@ export default function ThermionixPage() {
 
     fetchMeasurements();
   }, [selectedDeviceId, dateRange]);
+
+  // Handle new measurements from realtime - prepend to existing measurements
+  const handleNewMeasurement = useCallback(
+    (newMeasurement: RealtimeThermionixMeasurement) => {
+      setMeasurements((prev) => {
+        // Prepend new measurement
+        const updated = [newMeasurement, ...prev];
+
+        // Limit array size to prevent memory issues (keep last 500)
+        return updated.slice(0, 500);
+      });
+    },
+    []
+  );
+
+  // Subscribe to realtime updates
+  const { isConnected } = useThermionixRealtime({
+    deviceId: selectedDeviceId,
+    onNewMeasurement: handleNewMeasurement,
+    enabled: !!selectedDeviceId, // Only subscribe when device selected
+  });
 
   // Handle apartment selection change - write directly to URL, preserve date range
   const handleDeviceChange = (newDeviceId: string) => {
@@ -268,7 +291,19 @@ export default function ThermionixPage() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Thermionix Monitoring</h1>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <h1 className="page-title" style={{ margin: 0 }}>
+          Thermionix Monitoring
+        </h1>
+        {selectedDeviceId && <ConnectionBadge isConnected={isConnected} />}
+      </div>
 
       {/* Apartment Selection in Card */}
       <div className="card-container">
@@ -306,7 +341,10 @@ export default function ThermionixPage() {
 
           {/* Date Range Filter */}
           <div className="grid-item">
-            <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
+            <DateRangeFilter
+              value={dateRange}
+              onChange={handleDateRangeChange}
+            />
           </div>
 
           {/* Temperature Chart - Full Width */}
