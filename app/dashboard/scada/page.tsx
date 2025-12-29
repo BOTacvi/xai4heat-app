@@ -32,7 +32,13 @@ type ScadaMeasurement = {
   datetime: string;
   location: string;
   t_amb: number | null;
+  t_ref: number | null;
+  t_sup_prim: number | null;
+  t_ret_prim: number | null;
+  t_sup_sec: number | null;
+  t_ret_sec: number | null;
   e: number | null;
+  pe: number | null;
 };
 
 export default function ScadaPage() {
@@ -166,21 +172,24 @@ export default function ScadaPage() {
   }, [selectedLamela, dateRange]);
 
   // Handle new measurements from realtime - prepend to existing measurements
-  const handleNewMeasurement = useCallback((newMeasurement: RealtimeSCADAMeasurement) => {
-    setMeasurements(prev => {
-      // Prepend new measurement
-      const updated = [newMeasurement, ...prev];
+  const handleNewMeasurement = useCallback(
+    (newMeasurement: RealtimeSCADAMeasurement) => {
+      setMeasurements((prev) => {
+        // Prepend new measurement
+        const updated = [newMeasurement, ...prev];
 
-      // Limit array size to prevent memory issues (keep last 500)
-      return updated.slice(0, 500);
-    });
-  }, []);
+        // Limit array size to prevent memory issues (keep last 500)
+        return updated.slice(0, 500);
+      });
+    },
+    []
+  );
 
   // Subscribe to realtime updates
   const { isConnected } = useSCADARealtime({
     lamela: selectedLamela,
     onNewMeasurement: handleNewMeasurement,
-    enabled: !!selectedLamela // Only subscribe when lamela selected
+    enabled: !!selectedLamela, // Only subscribe when lamela selected
   });
 
   // Handle lamela selection change - write directly to URL, preserve date range
@@ -222,8 +231,42 @@ export default function ScadaPage() {
 
   const currentTemp = measurements.length > 0 ? measurements[0].t_amb : null;
   const currentPressure = measurements.length > 0 ? measurements[0].e : null;
+  const currentTSupPrim = measurements.length > 0 ? measurements[0].t_sup_prim : null;
+  const currentTRetPrim = measurements.length > 0 ? measurements[0].t_ret_prim : null;
+  const currentTSupSec = measurements.length > 0 ? measurements[0].t_sup_sec : null;
+  const currentTRetSec = measurements.length > 0 ? measurements[0].t_ret_sec : null;
   const latestTimestamp =
     measurements.length > 0 ? measurements[0].datetime : undefined;
+
+  // Calculate temperature statistics
+  const tempStats = useMemo(() => {
+    const temps = measurements
+      .filter((m) => m.t_amb !== null)
+      .map((m) => m.t_amb!);
+
+    if (temps.length === 0) return null;
+
+    const sum = temps.reduce((a, b) => a + b, 0);
+    const avg = sum / temps.length;
+    const min = Math.min(...temps);
+    const max = Math.max(...temps);
+
+    return { avg, min, max };
+  }, [measurements]);
+
+  // Calculate pressure statistics
+  const pressureStats = useMemo(() => {
+    const pressures = measurements.filter((m) => m.e !== null).map((m) => m.e!);
+
+    if (pressures.length === 0) return null;
+
+    const sum = pressures.reduce((a, b) => a + b, 0);
+    const avg = sum / pressures.length;
+    const min = Math.min(...pressures);
+    const max = Math.max(...pressures);
+
+    return { avg, min, max };
+  }, [measurements]);
 
   const tempChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.t_amb !== null)
@@ -237,45 +280,325 @@ export default function ScadaPage() {
 
   return (
     <div className="page-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>SCADA Monitoring</h1>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <h1 className="page-title" style={{ margin: 0 }}>
+          SCADA Monitoring
+        </h1>
         {selectedLamela && <ConnectionBadge isConnected={isConnected} />}
       </div>
 
-      <div className="card-container">
-        {isLoadingLamelas ? (
-          <div className="loading-text">Loading lamelas...</div>
-        ) : (
-          <Select
-            label="Select Lamela"
-            options={lamelaOptions}
-            value={selectedLamela}
-            onChange={(value) => handleLamelaChange(String(value))}
-            placeholder="Choose a lamela"
-            fullWidth
-          />
+      {/* Lamela Selection and Date Range in same row */}
+      <div className="content-grid">
+        <div className="grid-item">
+          <div className="card-container">
+            {isLoadingLamelas ? (
+              <div className="loading-text">Loading lamelas...</div>
+            ) : (
+              <Select
+                label="Select Lamela"
+                options={lamelaOptions}
+                value={selectedLamela}
+                onChange={(value) => handleLamelaChange(String(value))}
+                placeholder="Choose a lamela"
+                fullWidth
+              />
+            )}
+          </div>
+        </div>
+
+        {selectedLamela && (
+          <div className="grid-item">
+            <DateRangeFilter
+              value={dateRange}
+              onChange={handleDateRangeChange}
+            />
+          </div>
         )}
       </div>
 
       {selectedLamela && (
         <div className="content-grid">
+          {/* Temperature Card with Stats */}
           <div className="grid-item">
             {isLoadingMeasurements ? (
               <MetricCardSkeleton />
             ) : (
-              <MetricCard
-                title="Current Temperature"
-                value={currentTemp}
-                unit="°C"
-                expectedMin={expectedTempMin}
-                expectedMax={expectedTempMax}
-                timestamp={latestTimestamp}
-              />
+              <div className="card-container">
+                <h3 style={{ marginTop: 0 }}>Temperature</h3>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    {currentTemp !== null ? `${currentTemp.toFixed(1)}°C` : "—"}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    Current
+                  </div>
+                </div>
+                {tempStats && (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gap: "1rem",
+                      paddingTop: "1rem",
+                      borderTop: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "600",
+                          color: "#10b981",
+                        }}
+                      >
+                        {tempStats.avg.toFixed(1)}°C
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        Average
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "600",
+                          color: "#3b82f6",
+                        }}
+                      >
+                        {tempStats.min.toFixed(1)}°C
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        Minimum
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "600",
+                          color: "#ef4444",
+                        }}
+                      >
+                        {tempStats.max.toFixed(1)}°C
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        Maximum
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
+          {/* Pressure Card with Stats */}
           <div className="grid-item">
-            <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container">
+                <h3 style={{ marginTop: 0 }}>Pressure</h3>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    {currentPressure !== null
+                      ? `${currentPressure.toFixed(1)} bar`
+                      : "—"}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    Current
+                  </div>
+                </div>
+                {pressureStats && (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gap: "1rem",
+                      paddingTop: "1rem",
+                      borderTop: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "600",
+                          color: "#10b981",
+                        }}
+                      >
+                        {pressureStats.avg.toFixed(1)} bar
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        Average
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "600",
+                          color: "#3b82f6",
+                        }}
+                      >
+                        {pressureStats.min.toFixed(1)} bar
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        Minimum
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "1.25rem",
+                          fontWeight: "600",
+                          color: "#ef4444",
+                        }}
+                      >
+                        {pressureStats.max.toFixed(1)} bar
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        Maximum
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Primary Circuit - Supply Temperature */}
+          <div className="grid-item">
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container">
+                <h3 style={{ marginTop: 0 }}>Primary Supply Temp</h3>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+                  From District Heating → Building
+                </div>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    {currentTSupPrim !== null ? `${currentTSupPrim.toFixed(1)}°C` : "—"}
+                  </div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                    Current
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Primary Circuit - Return Temperature */}
+          <div className="grid-item">
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container">
+                <h3 style={{ marginTop: 0 }}>Primary Return Temp</h3>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+                  From Building → District Heating
+                </div>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    {currentTRetPrim !== null ? `${currentTRetPrim.toFixed(1)}°C` : "—"}
+                  </div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                    Current
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Secondary Circuit - Supply Temperature */}
+          <div className="grid-item">
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container">
+                <h3 style={{ marginTop: 0 }}>Secondary Supply Temp</h3>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+                  To Radiators/Floors in Building
+                </div>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    {currentTSupSec !== null ? `${currentTSupSec.toFixed(1)}°C` : "—"}
+                  </div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                    Current
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Secondary Circuit - Return Temperature */}
+          <div className="grid-item">
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container">
+                <h3 style={{ marginTop: 0 }}>Secondary Return Temp</h3>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+                  From Radiators/Floors in Building
+                </div>
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                    {currentTRetSec !== null ? `${currentTRetSec.toFixed(1)}°C` : "—"}
+                  </div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                    Current
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid-item-full-width">
@@ -290,23 +613,6 @@ export default function ScadaPage() {
             )}
           </div>
 
-          <div className="grid-item">
-            {isLoadingMeasurements ? (
-              <MetricCardSkeleton />
-            ) : (
-              <MetricCard
-                title="Current Pressure"
-                value={currentPressure}
-                unit="bar"
-                expectedMin={expectedPressureMin}
-                expectedMax={expectedPressureMax}
-                timestamp={latestTimestamp}
-              />
-            )}
-          </div>
-
-          <div className="grid-item"></div>
-
           <div className="grid-item-full-width">
             {isLoadingMeasurements ? (
               <ChartSkeleton />
@@ -315,6 +621,7 @@ export default function ScadaPage() {
                 data={pressureChartData}
                 title="Pressure Over Time"
                 yAxisLabel="Pressure (bar)"
+                yAxisDomain={[18660, 18670]}
               />
             )}
           </div>

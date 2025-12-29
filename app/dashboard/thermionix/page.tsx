@@ -92,6 +92,8 @@ export default function ThermionixPage() {
   const [expectedTempMax, setExpectedTempMax] = useState<number>(24);
   const [expectedHumidityMin, setExpectedHumidityMin] = useState<number>(30);
   const [expectedHumidityMax, setExpectedHumidityMax] = useState<number>(60);
+  const [expectedCO2Min, setExpectedCO2Min] = useState<number>(400);
+  const [expectedCO2Max, setExpectedCO2Max] = useState<number>(1000);
 
   // Fetch devices on mount
   useEffect(() => {
@@ -122,6 +124,8 @@ export default function ThermionixPage() {
           setExpectedTempMax(data.settings.expected_temp_max ?? 24);
           setExpectedHumidityMin(data.settings.expected_pressure_min ?? 30);
           setExpectedHumidityMax(data.settings.expected_pressure_max ?? 60);
+          setExpectedCO2Min(data.settings.expected_co2_min ?? 400);
+          setExpectedCO2Max(data.settings.expected_co2_max ?? 1000);
         }
       } catch (error) {
         console.error("Failed to fetch settings:", error);
@@ -267,8 +271,87 @@ export default function ThermionixPage() {
     measurements.length > 0 ? measurements[0].temperature : null;
   const currentHumidity =
     measurements.length > 0 ? measurements[0].relative_humidity : null;
+  const currentCO2 =
+    measurements.length > 0 ? measurements[0].co2 : null;
   const latestTimestamp =
     measurements.length > 0 ? measurements[0].datetime : undefined;
+
+  // Helper function to get color and status based on expected range
+  const getValueStatus = (
+    value: number | null,
+    min: number,
+    max: number
+  ): { color: string; text: string } => {
+    if (value === null) return { color: "inherit", text: "" };
+
+    if (value < min) {
+      return { color: "#3b82f6", text: "Below Expected" }; // Blue
+    } else if (value > max) {
+      return { color: "#ef4444", text: "Above Expected" }; // Red
+    } else {
+      return { color: "#10b981", text: "" }; // Green - within range, no text needed
+    }
+  };
+
+  // Helper function to get just the color (for stats without text)
+  const getValueColor = (value: number | null, min: number, max: number): string => {
+    if (value === null) return "inherit";
+    if (value < min) return "#3b82f6"; // Blue
+    if (value > max) return "#ef4444"; // Red
+    return "#10b981"; // Green
+  };
+
+  const tempStatus = getValueStatus(currentTemp, expectedTempMin, expectedTempMax);
+  const humidityStatus = getValueStatus(currentHumidity, expectedHumidityMin, expectedHumidityMax);
+  const co2Status = getValueStatus(currentCO2, expectedCO2Min, expectedCO2Max);
+
+  // Calculate temperature statistics
+  const tempStats = useMemo(() => {
+    const temps = measurements
+      .filter((m) => m.temperature !== null)
+      .map((m) => m.temperature!);
+
+    if (temps.length === 0) return null;
+
+    const sum = temps.reduce((a, b) => a + b, 0);
+    const avg = sum / temps.length;
+    const min = Math.min(...temps);
+    const max = Math.max(...temps);
+
+    return { avg, min, max };
+  }, [measurements]);
+
+  // Calculate humidity statistics
+  const humidityStats = useMemo(() => {
+    const humidities = measurements
+      .filter((m) => m.relative_humidity !== null)
+      .map((m) => m.relative_humidity!);
+
+    if (humidities.length === 0) return null;
+
+    const sum = humidities.reduce((a, b) => a + b, 0);
+    const avg = sum / humidities.length;
+    const min = Math.min(...humidities);
+    const max = Math.max(...humidities);
+
+    return { avg, min, max };
+  }, [measurements]);
+
+  // Calculate CO2 statistics
+  const co2Stats = useMemo(() => {
+    const co2Values = measurements
+      .filter((m) => m.co2 !== null)
+      .map((m) => m.co2!);
+
+    if (co2Values.length === 0) return null;
+
+    const sum = co2Values.reduce((a, b) => a + b, 0);
+    const avg = sum / co2Values.length;
+    const min = Math.min(...co2Values);
+    const max = Math.max(...co2Values);
+
+    return { avg, min, max };
+  }, [measurements]);
 
   // Prepare chart data
   const tempChartData: TimeSeriesDataPoint[] = measurements
@@ -284,6 +367,14 @@ export default function ThermionixPage() {
     .map((m) => ({
       timestamp: m.datetime,
       value: m.relative_humidity!,
+    }))
+    .reverse();
+
+  const co2ChartData: TimeSeriesDataPoint[] = measurements
+    .filter((m) => m.co2 !== null)
+    .map((m) => ({
+      timestamp: m.datetime,
+      value: m.co2!,
     }))
     .reverse();
 
@@ -305,46 +396,95 @@ export default function ThermionixPage() {
         {selectedDeviceId && <ConnectionBadge isConnected={isConnected} />}
       </div>
 
-      {/* Apartment Selection in Card */}
-      <div className="card-container">
-        {isLoadingDevices ? (
-          <div className="loading-text">Loading apartments...</div>
-        ) : (
-          <Select
-            label="Select Apartment"
-            options={deviceOptions}
-            value={selectedDeviceId}
-            onChange={(value) => handleDeviceChange(String(value))}
-            placeholder="Choose an apartment"
-            fullWidth
-          />
-        )}
-      </div>
-
-      {selectedDeviceId && (
-        <div className="content-grid">
-          {/* Temperature Card */}
-          <div className="grid-item">
-            {isLoadingMeasurements ? (
-              <MetricCardSkeleton />
+      {/* Apartment Selection and Date Range in same row */}
+      <div className="content-grid">
+        <div className="grid-item">
+          <div className="card-container">
+            {isLoadingDevices ? (
+              <div className="loading-text">Loading apartments...</div>
             ) : (
-              <MetricCard
-                title="Current Temperature"
-                value={currentTemp}
-                unit="°C"
-                expectedMin={expectedTempMin}
-                expectedMax={expectedTempMax}
-                timestamp={latestTimestamp}
+              <Select
+                label="Select Apartment"
+                options={deviceOptions}
+                value={selectedDeviceId}
+                onChange={(value) => handleDeviceChange(String(value))}
+                placeholder="Choose an apartment"
+                fullWidth
               />
             )}
           </div>
+        </div>
 
-          {/* Date Range Filter */}
+        {selectedDeviceId && (
           <div className="grid-item">
             <DateRangeFilter
               value={dateRange}
               onChange={handleDateRangeChange}
             />
+          </div>
+        )}
+      </div>
+
+      {selectedDeviceId && (
+        <div className="content-grid">
+          {/* Temperature Card with Stats - Full Width */}
+          <div className="grid-item-full-width">
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container" style={{ position: "relative", paddingBottom: "3rem" }}>
+                <h3 style={{ marginTop: 0, marginBottom: "1.5rem", fontWeight: "bold" }}>Temperature</h3>
+                <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                  Expected: {expectedTempMin}°C - {expectedTempMax}°C
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "2rem", fontWeight: "bold", color: tempStatus.color }}>
+                      {currentTemp !== null ? `${currentTemp.toFixed(1)}°C` : "—"}
+                    </div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                      Current
+                    </div>
+                    {tempStatus.text && (
+                      <div style={{ fontSize: "0.75rem", color: tempStatus.color, marginTop: "0.25rem" }}>
+                        {tempStatus.text}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                  {tempStats && (
+                    <>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.avg, expectedTempMin, expectedTempMax) }}>
+                          {tempStats.avg.toFixed(1)}°C
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Average
+                        </div>
+                      </div>
+                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.min, expectedTempMin, expectedTempMax) }}>
+                          {tempStats.min.toFixed(1)}°C
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Minimum
+                        </div>
+                      </div>
+                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.max, expectedTempMin, expectedTempMax) }}>
+                          {tempStats.max.toFixed(1)}°C
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Maximum
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Temperature Chart - Full Width */}
@@ -360,24 +500,65 @@ export default function ThermionixPage() {
             )}
           </div>
 
-          {/* Humidity Card */}
-          <div className="grid-item">
+          {/* Humidity Card with Stats - Full Width */}
+          <div className="grid-item-full-width">
             {isLoadingMeasurements ? (
               <MetricCardSkeleton />
             ) : (
-              <MetricCard
-                title="Current Humidity"
-                value={currentHumidity}
-                unit="%"
-                expectedMin={expectedHumidityMin}
-                expectedMax={expectedHumidityMax}
-                timestamp={latestTimestamp}
-              />
+              <div className="card-container" style={{ position: "relative", paddingBottom: "3rem" }}>
+                <h3 style={{ marginTop: 0, marginBottom: "1.5rem", fontWeight: "bold" }}>Humidity</h3>
+                <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                  Expected: {expectedHumidityMin}% - {expectedHumidityMax}%
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "2rem", fontWeight: "bold", color: humidityStatus.color }}>
+                      {currentHumidity !== null ? `${currentHumidity.toFixed(1)}%` : "—"}
+                    </div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                      Current
+                    </div>
+                    {humidityStatus.text && (
+                      <div style={{ fontSize: "0.75rem", color: humidityStatus.color, marginTop: "0.25rem" }}>
+                        {humidityStatus.text}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                  {humidityStats && (
+                    <>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.avg, expectedHumidityMin, expectedHumidityMax) }}>
+                          {humidityStats.avg.toFixed(1)}%
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Average
+                        </div>
+                      </div>
+                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.min, expectedHumidityMin, expectedHumidityMax) }}>
+                          {humidityStats.min.toFixed(1)}%
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Minimum
+                        </div>
+                      </div>
+                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.max, expectedHumidityMin, expectedHumidityMax) }}>
+                          {humidityStats.max.toFixed(1)}%
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Maximum
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Empty grid item for spacing */}
-          <div className="grid-item"></div>
 
           {/* Humidity Chart - Full Width */}
           <div className="grid-item-full-width">
@@ -388,6 +569,79 @@ export default function ThermionixPage() {
                 data={humidityChartData}
                 title="Relative Humidity Over Time"
                 yAxisLabel="Humidity (%)"
+              />
+            )}
+          </div>
+
+          {/* CO2 Card with Stats - Full Width */}
+          <div className="grid-item-full-width">
+            {isLoadingMeasurements ? (
+              <MetricCardSkeleton />
+            ) : (
+              <div className="card-container" style={{ position: "relative", paddingBottom: "3rem" }}>
+                <h3 style={{ marginTop: 0, marginBottom: "1.5rem", fontWeight: "bold" }}>CO2</h3>
+                <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                  Expected: {expectedCO2Min} - {expectedCO2Max} ppm
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "2rem", fontWeight: "bold", color: co2Status.color }}>
+                      {currentCO2 !== null ? `${currentCO2.toFixed(0)} ppm` : "—"}
+                    </div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                      Current
+                    </div>
+                    {co2Status.text && (
+                      <div style={{ fontSize: "0.75rem", color: co2Status.color, marginTop: "0.25rem" }}>
+                        {co2Status.text}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                  {co2Stats && (
+                    <>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.avg, expectedCO2Min, expectedCO2Max) }}>
+                          {co2Stats.avg.toFixed(0)} ppm
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Average
+                        </div>
+                      </div>
+                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.min, expectedCO2Min, expectedCO2Max) }}>
+                          {co2Stats.min.toFixed(0)} ppm
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Minimum
+                        </div>
+                      </div>
+                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.max, expectedCO2Min, expectedCO2Max) }}>
+                          {co2Stats.max.toFixed(0)} ppm
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                          Maximum
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CO2 Chart - Full Width */}
+          <div className="grid-item-full-width">
+            {isLoadingMeasurements ? (
+              <ChartSkeleton />
+            ) : (
+              <TimeSeriesChart
+                data={co2ChartData}
+                title="CO2 Levels Over Time"
+                yAxisLabel="CO2 (ppm)"
               />
             )}
           </div>

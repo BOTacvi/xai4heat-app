@@ -38,7 +38,8 @@ import type { UserSettings } from '@/lib/generated/prisma'
  * VALIDATION RULES:
  * - All values must be numbers
  * - Temperature: -50 to 100 (covers most realistic scenarios)
- * - Pressure: 0 to 10 (bar - typical heating system range)
+ * - Humidity: 0 to 100 (percentage)
+ * - CO2: 0 to 5000 (ppm - parts per million)
  * - Min must be less than Max
  */
 const appSettingsSchema = z.object({
@@ -52,18 +53,29 @@ const appSettingsSchema = z.object({
     .max(100, 'Temperature must be at most 100°C'),
   expected_pressure_min: z
     .number({ invalid_type_error: 'Must be a number' })
-    .min(0, 'Pressure must be at least 0 bar')
-    .max(10, 'Pressure must be at most 10 bar'),
+    .min(0, 'Humidity must be at least 0%')
+    .max(100, 'Humidity must be at most 100%'),
   expected_pressure_max: z
     .number({ invalid_type_error: 'Must be a number' })
-    .min(0, 'Pressure must be at least 0 bar')
-    .max(10, 'Pressure must be at most 10 bar'),
+    .min(0, 'Humidity must be at least 0%')
+    .max(100, 'Humidity must be at most 100%'),
+  expected_co2_min: z
+    .number({ invalid_type_error: 'Must be a number' })
+    .min(0, 'CO2 must be at least 0 ppm')
+    .max(5000, 'CO2 must be at most 5000 ppm'),
+  expected_co2_max: z
+    .number({ invalid_type_error: 'Must be a number' })
+    .min(0, 'CO2 must be at least 0 ppm')
+    .max(5000, 'CO2 must be at most 5000 ppm'),
 }).refine(data => data.expected_temp_min < data.expected_temp_max, {
   message: 'Min temperature must be less than max temperature',
   path: ['expected_temp_max'],
 }).refine(data => data.expected_pressure_min < data.expected_pressure_max, {
-  message: 'Min pressure must be less than max pressure',
+  message: 'Min humidity must be less than max humidity',
   path: ['expected_pressure_max'],
+}).refine(data => data.expected_co2_min < data.expected_co2_max, {
+  message: 'Min CO2 must be less than max CO2',
+  path: ['expected_co2_max'],
 })
 
 type AppSettingsFormData = z.infer<typeof appSettingsSchema>
@@ -87,6 +99,8 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
       expected_temp_max: currentSettings.expected_temp_max,
       expected_pressure_min: currentSettings.expected_pressure_min,
       expected_pressure_max: currentSettings.expected_pressure_max,
+      expected_co2_min: currentSettings.expected_co2_min,
+      expected_co2_max: currentSettings.expected_co2_max,
     },
   })
 
@@ -168,30 +182,58 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
         </div>
       </div>
 
-      {/* Pressure Settings */}
+      {/* Humidity Settings */}
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Pressure Range (bar)</h4>
+        <h4 className={styles.sectionTitle}>Humidity Range (%)</h4>
         <p className={styles.sectionDescription}>
           Values outside this range will be marked as warnings on the dashboard
         </p>
 
         <div className={styles.fieldRow}>
           <Input
-            label="Minimum Pressure"
+            label="Minimum Humidity"
             type="number"
-            step="0.1"
+            step="1"
             disabled={isSubmitting}
             error={errors.expected_pressure_min?.message}
             {...register('expected_pressure_min', { valueAsNumber: true })}
           />
 
           <Input
-            label="Maximum Pressure"
+            label="Maximum Humidity"
             type="number"
-            step="0.1"
+            step="1"
             disabled={isSubmitting}
             error={errors.expected_pressure_max?.message}
             {...register('expected_pressure_max', { valueAsNumber: true })}
+          />
+        </div>
+      </div>
+
+      {/* CO2 Settings */}
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>CO2 Range (ppm)</h4>
+        <p className={styles.sectionDescription}>
+          Values outside this range will be marked as warnings on the dashboard
+        </p>
+
+        <div className={styles.fieldRow}>
+          <Input
+            label="Minimum CO2"
+            type="number"
+            step="10"
+            disabled={isSubmitting}
+            error={errors.expected_co2_min?.message}
+            {...register('expected_co2_min', { valueAsNumber: true })}
+          />
+
+          <Input
+            label="Maximum CO2"
+            type="number"
+            step="10"
+            disabled={isSubmitting}
+            error={errors.expected_co2_max?.message}
+            {...register('expected_co2_max', { valueAsNumber: true })}
           />
         </div>
       </div>

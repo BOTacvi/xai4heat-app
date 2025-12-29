@@ -30,6 +30,7 @@ type TimeSeriesChartProps = {
   yAxisLabel: string
   isLoading?: boolean
   className?: string
+  yAxisDomain?: [number, number] // Optional fixed Y-axis range [min, max]
 }
 
 export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
@@ -38,6 +39,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   yAxisLabel,
   isLoading = false,
   className,
+  yAxisDomain,
 }) => {
   // Responsive chart sizing based on viewport
   const [isMobile, setIsMobile] = React.useState(false)
@@ -113,6 +115,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
             stroke="#737373"
             tick={{ fill: '#737373', fontSize }}
             width={isMobile ? 40 : 60}
+            domain={yAxisDomain || ['auto', 'auto']}
           />
           <Tooltip
             contentStyle={{

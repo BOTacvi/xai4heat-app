@@ -130,6 +130,38 @@ export default function WeatherLinkPage() {
   const latest = measurements.length > 0 ? measurements[0] : null;
   const latestTimestamp = latest?.datetime;
 
+  // Calculate temperature statistics
+  const tempStats = useMemo(() => {
+    const temps = measurements
+      .filter((m) => m.temp_out !== null)
+      .map((m) => m.temp_out!);
+
+    if (temps.length === 0) return null;
+
+    const sum = temps.reduce((a, b) => a + b, 0);
+    const avg = sum / temps.length;
+    const min = Math.min(...temps);
+    const max = Math.max(...temps);
+
+    return { avg, min, max };
+  }, [measurements]);
+
+  // Calculate humidity statistics
+  const humidityStats = useMemo(() => {
+    const humidities = measurements
+      .filter((m) => m.hum_out !== null)
+      .map((m) => m.hum_out!);
+
+    if (humidities.length === 0) return null;
+
+    const sum = humidities.reduce((a, b) => a + b, 0);
+    const avg = sum / humidities.length;
+    const min = Math.min(...humidities);
+    const max = Math.max(...humidities);
+
+    return { avg, min, max };
+  }, [measurements]);
+
   const tempChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.temp_out !== null)
     .map((m) => ({
@@ -150,31 +182,97 @@ export default function WeatherLinkPage() {
 
       {/* Main Content Grid */}
       <div className={styles.contentGrid}>
-        {/* Temperature Card */}
+        {/* Temperature Card with Stats */}
         <div className={styles.gridItem}>
           {isLoading ? (
             <MetricCardSkeleton />
           ) : (
-            <MetricCard
-              title="Outdoor Temperature"
-              value={latest?.temp_out ?? null}
-              unit="°C"
-              timestamp={latestTimestamp}
-            />
+            <div className="card-container">
+              <h3 style={{ marginTop: 0 }}>Outdoor Temperature</h3>
+              <div style={{ marginBottom: "1rem" }}>
+                <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                  {latest?.temp_out !== null && latest?.temp_out !== undefined ? `${latest.temp_out.toFixed(1)}°C` : "—"}
+                </div>
+                <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                  Current
+                </div>
+              </div>
+              {tempStats && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)" }}>
+                  <div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                      {tempStats.avg.toFixed(1)}°C
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      Average
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#3b82f6" }}>
+                      {tempStats.min.toFixed(1)}°C
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      Minimum
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ef4444" }}>
+                      {tempStats.max.toFixed(1)}°C
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      Maximum
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Humidity Card */}
+        {/* Humidity Card with Stats */}
         <div className={styles.gridItem}>
           {isLoading ? (
             <MetricCardSkeleton />
           ) : (
-            <MetricCard
-              title="Outdoor Humidity"
-              value={latest?.hum_out ?? null}
-              unit="%"
-              timestamp={latestTimestamp}
-            />
+            <div className="card-container">
+              <h3 style={{ marginTop: 0 }}>Outdoor Humidity</h3>
+              <div style={{ marginBottom: "1rem" }}>
+                <div style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                  {latest?.hum_out !== null && latest?.hum_out !== undefined ? `${latest.hum_out.toFixed(1)}%` : "—"}
+                </div>
+                <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                  Current
+                </div>
+              </div>
+              {humidityStats && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)" }}>
+                  <div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: "600" }}>
+                      {humidityStats.avg.toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      Average
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#3b82f6" }}>
+                      {humidityStats.min.toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      Minimum
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ef4444" }}>
+                      {humidityStats.max.toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      Maximum
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 

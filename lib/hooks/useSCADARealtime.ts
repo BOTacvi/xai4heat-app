@@ -24,7 +24,13 @@ export type SCADAMeasurement = {
   datetime: string
   location: string
   t_amb: number | null
+  t_ref: number | null
+  t_sup_prim: number | null
+  t_ret_prim: number | null
+  t_sup_sec: number | null
+  t_ret_sec: number | null
   e: number | null
+  pe: number | null
 }
 
 type UseSCADARealtimeProps = {
