@@ -312,7 +312,6 @@ export async function POST(req: Request) {
         }
 
         // STEP 6: Trigger alert detection (fire and forget - don't await)
-        // This runs asynchronously and doesn't block the response
         checkThermionixMeasurement(
           {
             datetime: measurement.datetime,
@@ -326,8 +325,8 @@ export async function POST(req: Request) {
             user_id: user.id,
             expected_temp_min: userSettings.expected_temp_min,
             expected_temp_max: userSettings.expected_temp_max,
-            expected_pressure_min: userSettings.expected_pressure_min,
-            expected_pressure_max: userSettings.expected_pressure_max,
+            expected_humidity_min: userSettings.expected_humidity_min,
+            expected_humidity_max: userSettings.expected_humidity_max,
             expected_co2_min: userSettings.expected_co2_min,
             expected_co2_max: userSettings.expected_co2_max,
           }

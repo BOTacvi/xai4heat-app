@@ -3,12 +3,9 @@
  *
  * DESIGN:
  * - 4 floating cards in 2x2 grid
- * - White cards in light mode, pure black in dark mode
- * - NO borders
- * - Subtle shadows for elevation
- * - Primary green icons and hover states
- * - White text in dark mode for high contrast
- * - 2rem gap between cards (gap-8)
+ * - White cards in light mode, dark surface in dark mode
+ * - Stats displayed in table-like format
+ * - Alert badges for unacknowledged alerts
  */
 
 .container {
@@ -20,49 +17,134 @@
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2rem; /* 2rem gap between cards */
+  gap: 1.5rem;
 }
 
 .card {
-  @apply flex flex-col items-center justify-center;
-  @apply p-8;
+  @apply flex flex-col;
+  @apply p-6;
   @apply rounded-lg;
   @apply shadow-md;
   @apply transition-all duration-200;
   @apply no-underline;
-  min-height: 200px;
+  min-height: 220px;
   background-color: var(--bg-card);
-}
-
-/* Mobile: Single column, reduced padding and gap */
-@media (max-width: 767px) {
-  .cardGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem; /* Reduce gap on mobile */
-  }
-
-  .card {
-    @apply p-6; /* Reduce card padding on mobile */
-    min-height: 150px;
-  }
 }
 
 .card:hover {
   @apply shadow-lg;
-  @apply scale-105;
+  transform: translateY(-4px);
+}
+
+/* Card Header - Icon + Title */
+.cardHeader {
+  @apply flex items-center gap-3;
+  @apply mb-4;
+  @apply pb-3;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+:global(.dark) .cardHeader {
+  border-bottom-color: #374151;
 }
 
 .icon {
   @apply text-primary;
-  @apply mb-4;
+  flex-shrink: 0;
 }
 
 .cardTitle {
-  @apply text-xl font-semibold;
+  @apply text-lg font-semibold;
   @apply text-neutral-900;
   @apply m-0;
 }
 
 :global(.dark) .cardTitle {
   color: #ffffff;
+}
+
+/* Stats Section */
+.statsSection {
+  @apply flex-1;
+  @apply flex flex-col;
+}
+
+.statsLoading {
+  @apply text-sm text-neutral-500;
+  @apply flex-1 flex items-center justify-center;
+}
+
+.statsGrid {
+  @apply flex flex-col gap-2;
+}
+
+.statItem {
+  @apply flex justify-between items-center;
+  @apply py-1;
+}
+
+.statLabel {
+  @apply text-sm text-neutral-500;
+}
+
+:global(.dark) .statLabel {
+  color: #9ca3af;
+}
+
+.statValue {
+  @apply text-sm font-medium text-neutral-900;
+}
+
+:global(.dark) .statValue {
+  color: #ffffff;
+}
+
+/* Alert Badge */
+.alertBadge {
+  @apply mt-3;
+  @apply px-3 py-1.5;
+  @apply text-xs font-medium;
+  @apply rounded-full;
+  @apply text-center;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+:global(.dark) .alertBadge {
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Settings Card Text */
+.settingsText {
+  @apply flex-1;
+  @apply flex items-center justify-center;
+  @apply text-sm text-neutral-500;
+}
+
+:global(.dark) .settingsText {
+  color: #9ca3af;
+}
+
+/* Mobile: Single column, reduced padding */
+@media (max-width: 767px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card {
+    @apply p-5;
+    min-height: 180px;
+  }
+
+  .cardHeader {
+    @apply mb-3 pb-2;
+  }
+
+  .cardTitle {
+    @apply text-base;
+  }
 }

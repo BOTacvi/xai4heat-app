@@ -75,20 +75,19 @@ model UserSettings {
   id                    String   @id @default(uuid()) @db.Uuid
   user_id               String   @unique @db.Uuid // Supabase Auth user ID
 
-  // Temperature range settings (in Celsius)
-  // COMMENT: These define what the user considers "normal" operating temperature
-  // Values outside this range will trigger visual warnings (red/blue backgrounds)
-  expected_temp_min     Float    @default(23.0)
+  // Temperature range (°C) - used by Thermionix and SCADA
+  expected_temp_min     Float    @default(18.0)
   expected_temp_max     Float    @default(26.0)
 
-  // Pressure range settings (unit should be consistent across your system)
-  // COMMENT: Similar to temperature, these define acceptable pressure bounds
+  // Humidity range (%) - used by Thermionix
+  expected_humidity_min Float    @default(30.0)
+  expected_humidity_max Float    @default(70.0)
+
+  // Pressure range (bar) - used by SCADA
   expected_pressure_min Float    @default(1.5)
   expected_pressure_max Float    @default(2.5)
 
-  // CO2 range settings (in ppm - parts per million)
-  // COMMENT: Acceptable CO2 levels for indoor air quality
-  // Typical ranges: 400-1000 ppm is good, >1000 ppm indicates poor ventilation
+  // CO2 range (ppm) - used by Thermionix
   expected_co2_min      Float    @default(400.0)
   expected_co2_max      Float    @default(1000.0)
 

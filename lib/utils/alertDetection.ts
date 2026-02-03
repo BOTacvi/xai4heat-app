@@ -226,21 +226,16 @@ export async function createAndBroadcastAlert(params: {
  *
  * CHECKS:
  * 1. Temperature vs expected_temp_min/max
- * 2. Humidity vs expected_pressure_min/max (reused for humidity)
+ * 2. Humidity vs expected_humidity_min/max
  * 3. CO2 vs expected_co2_min/max
  *
  * CREATES ALERTS FOR:
  * - TEMP_HIGH: temperature > expected_temp_max
  * - TEMP_LOW: temperature < expected_temp_min
- * - HUMIDITY_HIGH: humidity > expected_pressure_max
- * - HUMIDITY_LOW: humidity < expected_pressure_min
+ * - HUMIDITY_HIGH: humidity > expected_humidity_max
+ * - HUMIDITY_LOW: humidity < expected_humidity_min
  * - CO2_HIGH: co2 > expected_co2_max
  * - CO2_LOW: co2 < expected_co2_min
- *
- * PARAMETERS:
- * @param measurement - Thermionix measurement with datetime, device_id, temperature, relative_humidity, co2
- * @param device - Device info with device_id and name (e.g., "L8_33_67")
- * @param thresholds - User settings with expected ranges
  */
 export async function checkThermionixMeasurement(
   measurement: {
@@ -258,8 +253,8 @@ export async function checkThermionixMeasurement(
     user_id: string
     expected_temp_min: number
     expected_temp_max: number
-    expected_pressure_min: number // Used for humidity
-    expected_pressure_max: number // Used for humidity
+    expected_humidity_min: number
+    expected_humidity_max: number
     expected_co2_min: number
     expected_co2_max: number
   }
@@ -307,11 +302,11 @@ export async function checkThermionixMeasurement(
     }
   }
 
-  // Check Humidity (using pressure thresholds - they're reused for humidity)
+  // Check Humidity
   if (measurement.relative_humidity !== null) {
     // Humidity too high
-    if (measurement.relative_humidity > thresholds.expected_pressure_max) {
-      const severity = calculateSeverity(measurement.relative_humidity, thresholds.expected_pressure_max)
+    if (measurement.relative_humidity > thresholds.expected_humidity_max) {
+      const severity = calculateSeverity(measurement.relative_humidity, thresholds.expected_humidity_max)
 
       await createAndBroadcastAlert({
         alert_type: 'HUMIDITY_HIGH',
@@ -319,7 +314,7 @@ export async function checkThermionixMeasurement(
         device_id: device.device_id,
         apartment_name: device.name || undefined,
         measured_value: measurement.relative_humidity,
-        threshold_value: thresholds.expected_pressure_max,
+        threshold_value: thresholds.expected_humidity_max,
         measurement_time: measurementTime,
         unit: '%',
         severity,
@@ -328,8 +323,8 @@ export async function checkThermionixMeasurement(
     }
 
     // Humidity too low
-    if (measurement.relative_humidity < thresholds.expected_pressure_min) {
-      const severity = calculateSeverity(measurement.relative_humidity, thresholds.expected_pressure_min)
+    if (measurement.relative_humidity < thresholds.expected_humidity_min) {
+      const severity = calculateSeverity(measurement.relative_humidity, thresholds.expected_humidity_min)
 
       await createAndBroadcastAlert({
         alert_type: 'HUMIDITY_LOW',
@@ -337,7 +332,7 @@ export async function checkThermionixMeasurement(
         device_id: device.device_id,
         apartment_name: device.name || undefined,
         measured_value: measurement.relative_humidity,
-        threshold_value: thresholds.expected_pressure_min,
+        threshold_value: thresholds.expected_humidity_min,
         measurement_time: measurementTime,
         unit: '%',
         severity,

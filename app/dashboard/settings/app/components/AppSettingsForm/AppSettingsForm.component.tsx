@@ -1,23 +1,11 @@
 /**
  * AppSettingsForm Component - Client Component
  *
- * LEARNING: Why Client Component?
- * - Uses React Hook Form for form management
- * - Needs to call API (fetch) on submit
- * - Needs to call refreshSettings() from AuthContext
- * - Interactive form with validation
- *
- * FORM FIELDS:
- * - Expected Temperature Min (°C)
- * - Expected Temperature Max (°C)
- * - Expected Pressure Min (bar)
- * - Expected Pressure Max (bar)
- *
- * ON SUBMIT:
- * 1. Validate inputs (Zod schema)
- * 2. PUT /api/user/settings
- * 3. Call refreshSettings() to update AuthContext
- * 4. Show success message
+ * Form for configuring alert threshold ranges:
+ * - Temperature (used by Thermionix and SCADA)
+ * - Humidity (used by Thermionix)
+ * - Pressure (used by SCADA)
+ * - CO2 (used by Thermionix)
  */
 
 'use client'
@@ -32,49 +20,54 @@ import { Button } from '@/components/atoms/Button'
 import styles from './AppSettingsForm.module.css'
 import type { UserSettings } from '@/lib/generated/prisma'
 
-/**
- * App Settings Form Validation Schema
- *
- * VALIDATION RULES:
- * - All values must be numbers
- * - Temperature: -50 to 100 (covers most realistic scenarios)
- * - Humidity: 0 to 100 (percentage)
- * - CO2: 0 to 5000 (ppm - parts per million)
- * - Min must be less than Max
- */
 const appSettingsSchema = z.object({
+  // Temperature (°C)
   expected_temp_min: z
-    .number({ invalid_type_error: 'Must be a number' })
-    .min(-50, 'Temperature must be at least -50°C')
-    .max(100, 'Temperature must be at most 100°C'),
+    .number({ message: 'Must be a number' })
+    .min(-50, 'Must be at least -50°C')
+    .max(100, 'Must be at most 100°C'),
   expected_temp_max: z
-    .number({ invalid_type_error: 'Must be a number' })
-    .min(-50, 'Temperature must be at least -50°C')
-    .max(100, 'Temperature must be at most 100°C'),
+    .number({ message: 'Must be a number' })
+    .min(-50, 'Must be at least -50°C')
+    .max(100, 'Must be at most 100°C'),
+  // Humidity (%)
+  expected_humidity_min: z
+    .number({ message: 'Must be a number' })
+    .min(0, 'Must be at least 0%')
+    .max(100, 'Must be at most 100%'),
+  expected_humidity_max: z
+    .number({ message: 'Must be a number' })
+    .min(0, 'Must be at least 0%')
+    .max(100, 'Must be at most 100%'),
+  // Pressure (bar)
   expected_pressure_min: z
-    .number({ invalid_type_error: 'Must be a number' })
-    .min(0, 'Humidity must be at least 0%')
-    .max(100, 'Humidity must be at most 100%'),
+    .number({ message: 'Must be a number' })
+    .min(0, 'Must be at least 0 bar')
+    .max(10, 'Must be at most 10 bar'),
   expected_pressure_max: z
-    .number({ invalid_type_error: 'Must be a number' })
-    .min(0, 'Humidity must be at least 0%')
-    .max(100, 'Humidity must be at most 100%'),
+    .number({ message: 'Must be a number' })
+    .min(0, 'Must be at least 0 bar')
+    .max(10, 'Must be at most 10 bar'),
+  // CO2 (ppm)
   expected_co2_min: z
-    .number({ invalid_type_error: 'Must be a number' })
-    .min(0, 'CO2 must be at least 0 ppm')
-    .max(5000, 'CO2 must be at most 5000 ppm'),
+    .number({ message: 'Must be a number' })
+    .min(0, 'Must be at least 0 ppm')
+    .max(5000, 'Must be at most 5000 ppm'),
   expected_co2_max: z
-    .number({ invalid_type_error: 'Must be a number' })
-    .min(0, 'CO2 must be at least 0 ppm')
-    .max(5000, 'CO2 must be at most 5000 ppm'),
+    .number({ message: 'Must be a number' })
+    .min(0, 'Must be at least 0 ppm')
+    .max(5000, 'Must be at most 5000 ppm'),
 }).refine(data => data.expected_temp_min < data.expected_temp_max, {
-  message: 'Min temperature must be less than max temperature',
+  message: 'Min must be less than max',
   path: ['expected_temp_max'],
+}).refine(data => data.expected_humidity_min < data.expected_humidity_max, {
+  message: 'Min must be less than max',
+  path: ['expected_humidity_max'],
 }).refine(data => data.expected_pressure_min < data.expected_pressure_max, {
-  message: 'Min humidity must be less than max humidity',
+  message: 'Min must be less than max',
   path: ['expected_pressure_max'],
 }).refine(data => data.expected_co2_min < data.expected_co2_max, {
-  message: 'Min CO2 must be less than max CO2',
+  message: 'Min must be less than max',
   path: ['expected_co2_max'],
 })
 
@@ -86,7 +79,6 @@ type AppSettingsFormProps = {
 
 export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSettings }) => {
   const { refreshSettings } = useAuth()
-  // REFACTOR: Removed apiError and successMessage states - now using toast notifications
 
   const {
     register,
@@ -97,6 +89,8 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
     defaultValues: {
       expected_temp_min: currentSettings.expected_temp_min,
       expected_temp_max: currentSettings.expected_temp_max,
+      expected_humidity_min: currentSettings.expected_humidity_min,
+      expected_humidity_max: currentSettings.expected_humidity_max,
       expected_pressure_min: currentSettings.expected_pressure_min,
       expected_pressure_max: currentSettings.expected_pressure_max,
       expected_co2_min: currentSettings.expected_co2_min,
@@ -104,27 +98,11 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
     },
   })
 
-  /**
-   * Handle form submission
-   *
-   * LEARNING: Form submission flow with API
-   * 1. React Hook Form validates (Zod schema)
-   * 2. If valid, onSubmit is called with validated data
-   * 3. PUT request to API
-   * 4. API validates again (never trust client!)
-   * 5. API updates database
-   * 6. Refresh AuthContext to sync UI
-   * 7. Show success message
-   */
   const onSubmit = async (data: AppSettingsFormData) => {
     try {
-      // STEP 1: Send PUT request to API
-      // COMMENT: No userId needed - API reads from session
       const response = await fetch('/api/user/settings', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
@@ -133,37 +111,26 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
         throw new Error(errorData.error || 'Failed to update settings')
       }
 
-      // STEP 2: Refresh settings in AuthContext
-      // COMMENT: This updates the global state so other components see new settings
       await refreshSettings()
-
-      // STEP 3: Show success message
-      // REFACTOR: Show success toast instead of inline banner
       toast.success('Settings updated successfully!')
-
     } catch (err: any) {
       console.error('Error updating settings:', err)
-      // REFACTOR: Display API error via toast instead of inline banner
       toast.error(err.message || 'An error occurred while updating settings')
     }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-      <h3 className={styles.formTitle}>Update Settings</h3>
-
-      {/* REFACTOR: Removed inline success/error banners - now using toast notifications */}
-
       {/* Temperature Settings */}
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Temperature Range (°C)</h4>
+        <h4 className={styles.sectionTitle}>Temperature (°C)</h4>
         <p className={styles.sectionDescription}>
-          Values outside this range will be marked as warnings on the dashboard
+          Thermionix apartment sensors and SCADA system
         </p>
 
         <div className={styles.fieldRow}>
           <Input
-            label="Minimum Temperature"
+            label="Minimum"
             type="number"
             step="0.1"
             disabled={isSubmitting}
@@ -172,7 +139,7 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
           />
 
           <Input
-            label="Maximum Temperature"
+            label="Maximum"
             type="number"
             step="0.1"
             disabled={isSubmitting}
@@ -184,25 +151,53 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
 
       {/* Humidity Settings */}
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>Humidity Range (%)</h4>
+        <h4 className={styles.sectionTitle}>Humidity (%)</h4>
         <p className={styles.sectionDescription}>
-          Values outside this range will be marked as warnings on the dashboard
+          Thermionix apartment sensors
         </p>
 
         <div className={styles.fieldRow}>
           <Input
-            label="Minimum Humidity"
+            label="Minimum"
             type="number"
             step="1"
+            disabled={isSubmitting}
+            error={errors.expected_humidity_min?.message}
+            {...register('expected_humidity_min', { valueAsNumber: true })}
+          />
+
+          <Input
+            label="Maximum"
+            type="number"
+            step="1"
+            disabled={isSubmitting}
+            error={errors.expected_humidity_max?.message}
+            {...register('expected_humidity_max', { valueAsNumber: true })}
+          />
+        </div>
+      </div>
+
+      {/* Pressure Settings */}
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Pressure (bar)</h4>
+        <p className={styles.sectionDescription}>
+          SCADA system
+        </p>
+
+        <div className={styles.fieldRow}>
+          <Input
+            label="Minimum"
+            type="number"
+            step="0.1"
             disabled={isSubmitting}
             error={errors.expected_pressure_min?.message}
             {...register('expected_pressure_min', { valueAsNumber: true })}
           />
 
           <Input
-            label="Maximum Humidity"
+            label="Maximum"
             type="number"
-            step="1"
+            step="0.1"
             disabled={isSubmitting}
             error={errors.expected_pressure_max?.message}
             {...register('expected_pressure_max', { valueAsNumber: true })}
@@ -212,14 +207,14 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
 
       {/* CO2 Settings */}
       <div className={styles.section}>
-        <h4 className={styles.sectionTitle}>CO2 Range (ppm)</h4>
+        <h4 className={styles.sectionTitle}>CO2 (ppm)</h4>
         <p className={styles.sectionDescription}>
-          Values outside this range will be marked as warnings on the dashboard
+          Thermionix apartment sensors
         </p>
 
         <div className={styles.fieldRow}>
           <Input
-            label="Minimum CO2"
+            label="Minimum"
             type="number"
             step="10"
             disabled={isSubmitting}
@@ -228,7 +223,7 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
           />
 
           <Input
-            label="Maximum CO2"
+            label="Maximum"
             type="number"
             step="10"
             disabled={isSubmitting}
@@ -238,7 +233,6 @@ export const AppSettingsForm: React.FC<AppSettingsFormProps> = ({ currentSetting
         </div>
       </div>
 
-      {/* Submit Button */}
       <Button
         type="submit"
         loading={isSubmitting}
