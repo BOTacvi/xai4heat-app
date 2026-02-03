@@ -14,6 +14,8 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/supabase/server";
+import { checkScadaMeasurement } from "@/lib/utils/alertDetection";
 
 export async function GET(req: Request) {
   try {
@@ -98,5 +100,156 @@ export async function GET(req: Request) {
       },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * POST /api/scada
+ *
+ * Create new SCADA measurements and trigger alert detection
+ *
+ * BODY:
+ * {
+ *   measurements: Array<{
+ *     datetime: string (ISO 8601),
+ *     location: string,
+ *     t_amb?: number,
+ *     t_ref?: number,
+ *     t_sup_prim?: number,
+ *     t_ret_prim?: number,
+ *     t_sup_sec?: number,
+ *     t_ret_sec?: number,
+ *     e?: number (pressure),
+ *     pe?: number
+ *   }>
+ * }
+ */
+export async function POST(req: Request) {
+  try {
+    // STEP 1: Get current user
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in' },
+        { status: 401 }
+      )
+    }
+
+    // STEP 2: Parse request body
+    const body = await req.json()
+    const { measurements } = body
+
+    if (!measurements || !Array.isArray(measurements) || measurements.length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid request body. Expected { measurements: Array }' },
+        { status: 400 }
+      )
+    }
+
+    // STEP 3: Get user settings for threshold comparison
+    const userSettings = await prisma.userSettings.findUnique({
+      where: { user_id: user.id },
+    })
+
+    if (!userSettings) {
+      return NextResponse.json(
+        { error: 'User settings not found' },
+        { status: 404 }
+      )
+    }
+
+    // STEP 4: Process each measurement
+    const createdMeasurements = []
+    const errors = []
+
+    for (const measurementData of measurements) {
+      try {
+        // Validate measurement data
+        const {
+          datetime,
+          location,
+          t_amb,
+          t_ref,
+          t_sup_prim,
+          t_ret_prim,
+          t_sup_sec,
+          t_ret_sec,
+          e,
+          pe
+        } = measurementData
+
+        if (!datetime || !location) {
+          errors.push({
+            measurement: measurementData,
+            error: 'Missing required fields: datetime, location'
+          })
+          continue
+        }
+
+        // Create measurement in database
+        const measurement = await prisma.scada_measurements.create({
+          data: {
+            datetime: new Date(datetime),
+            location: location,
+            t_amb: t_amb !== undefined ? parseFloat(t_amb) : null,
+            t_ref: t_ref !== undefined ? parseFloat(t_ref) : null,
+            t_sup_prim: t_sup_prim !== undefined ? parseFloat(t_sup_prim) : null,
+            t_ret_prim: t_ret_prim !== undefined ? parseFloat(t_ret_prim) : null,
+            t_sup_sec: t_sup_sec !== undefined ? parseFloat(t_sup_sec) : null,
+            t_ret_sec: t_ret_sec !== undefined ? parseFloat(t_ret_sec) : null,
+            e: e !== undefined ? parseFloat(e) : null,
+            pe: pe !== undefined ? parseFloat(pe) : null,
+          },
+        })
+
+        createdMeasurements.push(measurement)
+
+        // STEP 5: Trigger alert detection (fire and forget - don't await)
+        // This runs asynchronously and doesn't block the response
+        checkScadaMeasurement(
+          {
+            datetime: measurement.datetime,
+            location: measurement.location,
+            t_amb: measurement.t_amb,
+            t_ref: measurement.t_ref,
+            e: measurement.e,
+            pe: measurement.pe,
+          },
+          {
+            user_id: user.id,
+            expected_temp_min: userSettings.expected_temp_min,
+            expected_temp_max: userSettings.expected_temp_max,
+            expected_pressure_min: userSettings.expected_pressure_min,
+            expected_pressure_max: userSettings.expected_pressure_max,
+          }
+        ).catch((err) => {
+          console.error('[SCADA POST] Alert detection failed:', err)
+        })
+      } catch (measurementError) {
+        errors.push({
+          measurement: measurementData,
+          error: String(measurementError),
+        })
+      }
+    }
+
+    // STEP 6: Return response
+    return NextResponse.json({
+      success: true,
+      created: createdMeasurements.length,
+      errors: errors.length > 0 ? errors : undefined,
+      measurements: createdMeasurements,
+    }, { status: 201 })
+
+  } catch (error) {
+    console.error('[SCADA POST] Error creating measurements:', error)
+    return NextResponse.json(
+      {
+        error: 'Failed to create measurements',
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+      },
+      { status: 500 }
+    )
   }
 }

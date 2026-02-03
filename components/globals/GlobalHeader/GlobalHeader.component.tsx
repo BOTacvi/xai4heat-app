@@ -17,6 +17,7 @@
 import clsx from "clsx";
 import Image from "next/image";
 import { Menu } from "lucide-react";
+import { AlertsDropdown } from "@/components/globals/AlertsDropdown";
 import styles from "./GlobalHeader.module.css";
 
 type GlobalHeaderProps = {
@@ -33,8 +34,7 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 
   return (
     <header className={headerClasses}>
-      {/* Hamburger button (mobile only) */}
-
+      {/* Logo */}
       <div className={styles.left}>
         <Image
           src="/xai4heat-logo-small.png"
@@ -44,14 +44,21 @@ const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           className={styles.logoSmall}
         />
       </div>
-      <button
-        className={styles.hamburger}
-        onClick={onMenuToggle}
-        aria-label="Open menu"
-        type="button"
-      >
-        <Menu size={24} />
-      </button>
+
+      {/* Header Actions */}
+      <div className={styles.actions}>
+        <AlertsDropdown />
+
+        {/* Hamburger button (mobile only) */}
+        <button
+          className={styles.hamburger}
+          onClick={onMenuToggle}
+          aria-label="Open menu"
+          type="button"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
     </header>
   );
 };

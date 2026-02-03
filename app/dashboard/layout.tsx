@@ -31,6 +31,7 @@ import { usePathname } from 'next/navigation'
 import clsx from "clsx";
 import GlobalNavigation from "@/components/globals/GlobalNavigation";
 import GlobalHeader from "@/components/globals/GlobalHeader";
+import { AlertsProvider } from "@/lib/contexts/AlertsContext";
 
 import styles from "./layout.module.css";
 
@@ -67,22 +68,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const wrapperClasses = clsx(styles['dashboard-wrapper'], className);
 
   return (
-    <div className={wrapperClasses}>
-      {/* Header with logo, hamburger menu (mobile), and logout button */}
-      <GlobalHeader onMenuToggle={() => setIsMobileMenuOpen(old => !old)} />
+    <AlertsProvider>
+      <div className={wrapperClasses}>
+        {/* Header with logo, hamburger menu (mobile), and logout button */}
+        <GlobalHeader onMenuToggle={() => setIsMobileMenuOpen(old => !old)} />
 
-      {/* Main container with sidebar + content */}
-      <div className={styles['dashboard-layout-container']}>
-        {/* Sidebar navigation with mobile overlay support */}
-        <GlobalNavigation
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-        />
+        {/* Main container with sidebar + content */}
+        <div className={styles['dashboard-layout-container']}>
+          {/* Sidebar navigation with mobile overlay support */}
+          <GlobalNavigation
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+          />
 
-        {/* Page content */}
-        <main className={styles['dashboard-main']}>{children}</main>
+          {/* Page content */}
+          <main className={styles['dashboard-main']}>{children}</main>
+        </div>
       </div>
-    </div>
+    </AlertsProvider>
   );
 };
 

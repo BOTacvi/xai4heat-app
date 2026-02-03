@@ -259,3 +259,4 @@ You should now have:
 - ✅ No breaking errors in browser or terminal
 
 **Next up: Building the actual dashboard pages!** 🎉
+

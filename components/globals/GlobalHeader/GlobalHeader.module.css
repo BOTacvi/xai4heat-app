@@ -52,6 +52,10 @@
   @apply flex-1;
 }
 
+.actions {
+  @apply flex items-center gap-3;
+}
+
 .logoSmall {
   @apply object-contain;
   height: auto;

@@ -49,6 +49,8 @@
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/supabase/server";
+import { checkThermionixMeasurement } from "@/lib/utils/alertDetection";
 
 export async function GET(req: Request) {
   try {
@@ -214,5 +216,148 @@ export async function GET(req: Request) {
       },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * POST /api/thermionix
+ *
+ * Create new Thermionix measurements and trigger alert detection
+ *
+ * BODY:
+ * {
+ *   measurements: Array<{
+ *     datetime: string (ISO 8601),
+ *     device_id: number,
+ *     probe_id: number,
+ *     temperature?: number,
+ *     relative_humidity?: number,
+ *     co2?: number
+ *   }>
+ * }
+ */
+export async function POST(req: Request) {
+  try {
+    // STEP 1: Get current user
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please log in' },
+        { status: 401 }
+      )
+    }
+
+    // STEP 2: Parse request body
+    const body = await req.json()
+    const { measurements } = body
+
+    if (!measurements || !Array.isArray(measurements) || measurements.length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid request body. Expected { measurements: Array }' },
+        { status: 400 }
+      )
+    }
+
+    // STEP 3: Get user settings for threshold comparison
+    const userSettings = await prisma.userSettings.findUnique({
+      where: { user_id: user.id },
+    })
+
+    if (!userSettings) {
+      return NextResponse.json(
+        { error: 'User settings not found' },
+        { status: 404 }
+      )
+    }
+
+    // STEP 4: Process each measurement
+    const createdMeasurements = []
+    const errors = []
+
+    for (const measurementData of measurements) {
+      try {
+        // Validate measurement data
+        const { datetime, device_id, probe_id, temperature, relative_humidity, co2 } = measurementData
+
+        if (!datetime || device_id === undefined || probe_id === undefined) {
+          errors.push({
+            measurement: measurementData,
+            error: 'Missing required fields: datetime, device_id, probe_id'
+          })
+          continue
+        }
+
+        // Create measurement in database
+        const measurement = await prisma.thermionyx_measurements.create({
+          data: {
+            datetime: new Date(datetime),
+            device_id: parseInt(device_id, 10),
+            probe_id: parseInt(probe_id, 10),
+            temperature: temperature !== undefined ? parseFloat(temperature) : null,
+            relative_humidity: relative_humidity !== undefined ? parseFloat(relative_humidity) : null,
+            co2: co2 !== undefined ? parseFloat(co2) : null,
+          },
+        })
+
+        createdMeasurements.push(measurement)
+
+        // STEP 5: Get device info for alert context
+        const device = await prisma.device.findUnique({
+          where: { device_id: device_id.toString() },
+        })
+
+        if (!device) {
+          console.warn(`[Thermionix POST] Device ${device_id} not found in devices table`)
+        }
+
+        // STEP 6: Trigger alert detection (fire and forget - don't await)
+        // This runs asynchronously and doesn't block the response
+        checkThermionixMeasurement(
+          {
+            datetime: measurement.datetime,
+            device_id: measurement.device_id,
+            temperature: measurement.temperature,
+            relative_humidity: measurement.relative_humidity,
+            co2: measurement.co2,
+          },
+          device || { device_id: device_id.toString(), name: null },
+          {
+            user_id: user.id,
+            expected_temp_min: userSettings.expected_temp_min,
+            expected_temp_max: userSettings.expected_temp_max,
+            expected_pressure_min: userSettings.expected_pressure_min,
+            expected_pressure_max: userSettings.expected_pressure_max,
+            expected_co2_min: userSettings.expected_co2_min,
+            expected_co2_max: userSettings.expected_co2_max,
+          }
+        ).catch((err) => {
+          console.error('[Thermionix POST] Alert detection failed:', err)
+        })
+      } catch (measurementError) {
+        errors.push({
+          measurement: measurementData,
+          error: String(measurementError),
+        })
+      }
+    }
+
+    // STEP 7: Return response
+    return NextResponse.json({
+      success: true,
+      created: createdMeasurements.length,
+      errors: errors.length > 0 ? errors : undefined,
+      measurements: createdMeasurements,
+    }, { status: 201 })
+
+  } catch (error) {
+    console.error('[Thermionix POST] Error creating measurements:', error)
+    return NextResponse.json(
+      {
+        error: 'Failed to create measurements',
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+      },
+      { status: 500 }
+    )
   }
 }

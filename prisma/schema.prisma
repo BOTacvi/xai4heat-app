@@ -132,3 +132,124 @@ model weatherlink_measurements {
 
   @@id([datetime, location])
 }
+
+/**
+ * Alert Type Enum
+ * COMMENT: Defines the type of threshold violation that triggered the alert
+ * - TEMP_HIGH/LOW: Temperature outside expected range
+ * - PRESSURE_HIGH/LOW: Pressure outside expected range (SCADA only)
+ * - HUMIDITY_HIGH/LOW: Humidity outside expected range
+ * - CO2_HIGH/LOW: CO2 levels outside expected range (Thermionix only)
+ */
+enum AlertType {
+  TEMP_HIGH
+  TEMP_LOW
+  PRESSURE_HIGH
+  PRESSURE_LOW
+  HUMIDITY_HIGH
+  HUMIDITY_LOW
+  CO2_HIGH
+  CO2_LOW
+}
+
+/**
+ * Alert Source Enum
+ * COMMENT: Identifies which monitoring system generated the alert
+ * - THERMIONIX: Apartment temperature/humidity/CO2 sensors
+ * - SCADA: Building heating system (temperature/pressure)
+ * - WEATHERLINK: External weather station
+ */
+enum AlertSource {
+  THERMIONIX
+  SCADA
+  WEATHERLINK
+}
+
+/**
+ * Alert Severity Enum
+ * COMMENT: Indicates urgency level of the alert
+ * - LOW: Minor deviation, informational
+ * - MEDIUM: Notable deviation, should be reviewed (default)
+ * - HIGH: Critical deviation, requires immediate attention
+ */
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/**
+ * Alert Model
+ * COMMENT: Stores threshold violation alerts for temperature, pressure, humidity, and CO2
+ *
+ * PURPOSE:
+ * - Track when measured values exceed user-defined expected ranges
+ * - Enable real-time notifications via Supabase Realtime
+ * - Support deep-linking to specific devices/locations
+ * - Provide alert history and acknowledgment tracking
+ *
+ * WORKFLOW:
+ * 1. Background worker detects measurement outside expected range
+ * 2. Creates Alert record with measured_value and threshold_value
+ * 3. User sees unread count badge in header (is_read = false)
+ * 4. User clicks alert, navigates to device/location
+ * 5. Alert marked as read (is_read = true)
+ * 6. Worker can acknowledge alert (is_acknowledged = true)
+ * 7. When value returns to normal, resolved_at is set
+ *
+ * DEEP-LINKING:
+ * - Thermionix: device_id + apartment_name -> /dashboard/thermionix?apartment={device_id}
+ * - SCADA: location -> /dashboard/scada?lamela={location}
+ * - WeatherLink: source only -> /dashboard/weatherlink
+ */
+model Alert {
+  // Primary Key
+  id                String        @id @default(uuid()) @db.Uuid
+
+  // Alert Classification
+  alert_type        AlertType     // What threshold was violated (TEMP_HIGH, PRESSURE_LOW, etc.)
+  source            AlertSource   // Which system generated it (THERMIONIX, SCADA, WEATHERLINK)
+  severity          AlertSeverity @default(MEDIUM) // Urgency level
+
+  // Source Identification
+  // COMMENT: These fields enable deep-linking to the specific device/location
+  device_id         String?       @db.VarChar // For Thermionix: matches Device.device_id
+  location          String?       @db.VarChar // For SCADA: lamela identifier like "L8"
+  apartment_name    String?       @db.VarChar // For Thermionix: human-readable like "L8_33_67"
+
+  // Measurement Details
+  // COMMENT: Store both the violating value and the threshold for context
+  measured_value    Float         // The actual value that triggered the alert
+  threshold_value   Float         // The expected min/max that was exceeded
+  measurement_time  DateTime      @db.Timestamp(6) // When the violation occurred
+  unit              String        @db.VarChar // Units: "°C", "bar", "%", "ppm"
+
+  // User Interaction State
+  // COMMENT: Track whether user has seen and/or acknowledged the alert
+  is_read           Boolean       @default(false) // For header badge unread count
+  is_acknowledged   Boolean       @default(false) // Worker marked as handled
+  acknowledged_at   DateTime?     @db.Timestamp(6) // When acknowledged
+  acknowledged_by   String?       @db.Uuid // User who acknowledged (for audit trail)
+
+  // Resolution Tracking
+  // COMMENT: Automatically set when measured value returns to expected range
+  resolved_at       DateTime?     @db.Timestamp(6) // When value returned to normal
+
+  // User Association
+  // COMMENT: Each alert belongs to a specific user based on their settings
+  user_id           String        @db.Uuid // Foreign key to Supabase Auth user
+
+  // Metadata
+  created_at        DateTime      @default(now()) @db.Timestamp(6)
+  updated_at        DateTime      @updatedAt @db.Timestamp(6)
+
+  // Performance Indexes
+  // COMMENT: Optimized for common query patterns
+  @@index([user_id, is_read])           // Quick unread count queries
+  @@index([user_id, is_acknowledged])   // Filter acknowledged alerts
+  @@index([created_at])                 // Time-based sorting and filtering
+  @@index([source, device_id])          // Group by source/device for deduplication
+  @@index([user_id, created_at])        // User's recent alerts
+
+  @@map("alerts")
+}

@@ -23,6 +23,7 @@
     --bg-app: #f7f7f5; /* dirty white - main app background */
     --bg-card: #ffffff; /* white - cards background */
     --bg-nav: #ffffff; /* white - navigation background */
+    --hover-bg: #f5f5f5; /* hover background for buttons and cards */
 
     /* Text colors */
     --text-primary: #171717; /* neutral-900 */
@@ -64,6 +65,7 @@
     --bg-app: #121212; /* very dark grey - main app background */
     --bg-card: #1e1e1e; /* lighter grey - cards, navigation, header background */
     --bg-nav: #1e1e1e; /* lighter grey - navigation background */
+    --hover-bg: #2a2a2a; /* hover background for buttons and cards */
 
     /* Text colors */
     --text-primary: #ffffff; /* pure white for better contrast on black */

@@ -24,18 +24,51 @@ type DateRangeFilterProps = {
 }
 
 const presetOptions: SelectOption[] = [
+  { label: 'Last Day', value: 'day' },
   { label: 'Last Week', value: 'week' },
   { label: 'Last Month', value: 'month' },
   { label: 'Last Year', value: 'year' },
   { label: 'Custom Range', value: 'custom' },
 ]
 
+/**
+ * Detect which preset matches the given date range (if any)
+ * Returns 'custom' if no preset matches
+ */
+function detectPreset(from: string, to: string): string {
+  const fromDate = new Date(from)
+  const toDate = new Date(to)
+  const now = new Date()
+
+  // Check if 'to' is roughly now (within 1 minute)
+  const toIsNow = Math.abs(toDate.getTime() - now.getTime()) < 60 * 1000
+
+  if (!toIsNow) {
+    // If 'to' is not now, it's a custom range
+    return 'custom'
+  }
+
+  const diffMs = toDate.getTime() - fromDate.getTime()
+  const diffDays = diffMs / (1000 * 60 * 60 * 24)
+
+  // Check presets with some tolerance (within 1 hour)
+  const tolerance = 1 / 24 // 1 hour in days
+
+  if (Math.abs(diffDays - 1) < tolerance) return 'day'
+  if (Math.abs(diffDays - 7) < tolerance) return 'week'
+  if (Math.abs(diffDays - 30) < tolerance) return 'month'
+  if (Math.abs(diffDays - 365) < tolerance) return 'year'
+
+  return 'custom'
+}
+
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   value,
   onChange,
   className,
 }) => {
-  const [preset, setPreset] = useState<string>('week')
+  // Detect preset from incoming value
+  const [preset, setPreset] = useState<string>(() => detectPreset(value.from, value.to))
 
   const handlePresetChange = (newPreset: string | number) => {
     setPreset(String(newPreset))
@@ -49,7 +82,11 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     const to = now.toISOString()
     let from: string
 
-    if (newPreset === 'week') {
+    if (newPreset === 'day') {
+      const dayAgo = new Date(now)
+      dayAgo.setDate(dayAgo.getDate() - 1)
+      from = dayAgo.toISOString()
+    } else if (newPreset === 'week') {
       const weekAgo = new Date(now)
       weekAgo.setDate(weekAgo.getDate() - 7)
       from = weekAgo.toISOString()
