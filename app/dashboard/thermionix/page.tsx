@@ -13,7 +13,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Select, SelectOption } from "@/components/fields/Select";
-import { MetricCard } from "@/components/cards/MetricCard";
 import {
   DateRangeFilter,
   DateRange,
@@ -25,7 +24,9 @@ import {
 import { MetricCardSkeleton } from "@/components/skeletons/MetricCardSkeleton";
 import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
 import { ConnectionBadge } from "@/components/realtime/ConnectionBadge";
+import { ExportButton } from "@/components/atoms/ExportButton";
 import { useThermionixRealtime } from "@/lib/hooks/useThermionixRealtime";
+import { exportThermionixData } from "@/lib/exports/thermionixExport";
 import type { ThermionixMeasurement as RealtimeThermionixMeasurement } from "@/lib/hooks/useThermionixRealtime";
 
 type Device = {
@@ -89,9 +90,9 @@ export default function ThermionixPage() {
   const [isLoadingDevices, setIsLoadingDevices] = useState(true);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
   const [expectedTempMin, setExpectedTempMin] = useState<number>(18);
-  const [expectedTempMax, setExpectedTempMax] = useState<number>(24);
+  const [expectedTempMax, setExpectedTempMax] = useState<number>(26);
   const [expectedHumidityMin, setExpectedHumidityMin] = useState<number>(30);
-  const [expectedHumidityMax, setExpectedHumidityMax] = useState<number>(60);
+  const [expectedHumidityMax, setExpectedHumidityMax] = useState<number>(70);
   const [expectedCO2Min, setExpectedCO2Min] = useState<number>(400);
   const [expectedCO2Max, setExpectedCO2Max] = useState<number>(1000);
 
@@ -119,13 +120,15 @@ export default function ThermionixPage() {
       try {
         const res = await fetch("/api/user/settings");
         const data = await res.json();
-        if (data.settings) {
-          setExpectedTempMin(data.settings.expected_temp_min ?? 18);
-          setExpectedTempMax(data.settings.expected_temp_max ?? 24);
-          setExpectedHumidityMin(data.settings.expected_pressure_min ?? 30);
-          setExpectedHumidityMax(data.settings.expected_pressure_max ?? 60);
-          setExpectedCO2Min(data.settings.expected_co2_min ?? 400);
-          setExpectedCO2Max(data.settings.expected_co2_max ?? 1000);
+        // API returns settings directly, not nested under data.settings
+        // Values are always present in DB (Prisma schema defaults ensure this)
+        if (data && !data.error) {
+          setExpectedTempMin(data.expected_temp_min);
+          setExpectedTempMax(data.expected_temp_max);
+          setExpectedHumidityMin(data.expected_humidity_min);
+          setExpectedHumidityMax(data.expected_humidity_max);
+          setExpectedCO2Min(data.expected_co2_min);
+          setExpectedCO2Max(data.expected_co2_max);
         }
       } catch (error) {
         console.error("Failed to fetch settings:", error);
@@ -273,8 +276,10 @@ export default function ThermionixPage() {
     measurements.length > 0 ? measurements[0].relative_humidity : null;
   const currentCO2 =
     measurements.length > 0 ? measurements[0].co2 : null;
-  const latestTimestamp =
-    measurements.length > 0 ? measurements[0].datetime : undefined;
+
+  // Get selected device name for export
+  const selectedDevice = devices.find((d) => d.device_id === selectedDeviceId);
+  const selectedDeviceName = selectedDevice?.name || selectedDeviceId;
 
   // Helper function to get color and status based on expected range
   const getValueStatus = (
@@ -353,6 +358,22 @@ export default function ThermionixPage() {
     return { avg, min, max };
   }, [measurements]);
 
+  // Handle export to Excel
+  const handleExport = useCallback(() => {
+    if (measurements.length === 0) return;
+
+    exportThermionixData(
+      measurements,
+      selectedDeviceName,
+      dateRange,
+      {
+        temperature: tempStats,
+        humidity: humidityStats,
+        co2: co2Stats,
+      }
+    );
+  }, [measurements, selectedDeviceName, dateRange, tempStats, humidityStats, co2Stats]);
+
   // Prepare chart data
   const tempChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.temperature !== null)
@@ -393,7 +414,16 @@ export default function ThermionixPage() {
         <h1 className="page-title" style={{ margin: 0 }}>
           Thermionix Monitoring
         </h1>
-        {selectedDeviceId && <ConnectionBadge isConnected={isConnected} />}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          {selectedDeviceId && measurements.length > 0 && (
+            <ExportButton
+              onExport={handleExport}
+              label="Export"
+              disabled={isLoadingMeasurements}
+            />
+          )}
+          {selectedDeviceId && <ConnectionBadge isConnected={isConnected} />}
+        </div>
       </div>
 
       {/* Apartment Selection and Date Range in same row */}

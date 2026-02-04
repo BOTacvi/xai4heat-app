@@ -1,0 +1,106 @@
+/**
+ * ExportButton Styles
+ *
+ * VARIANTS:
+ * - primary: Solid background, high emphasis
+ * - secondary: Outlined, medium emphasis
+ * - ghost: No background, low emphasis
+ *
+ * SIZES:
+ * - small: Compact, for tight spaces
+ * - medium: Standard size
+ */
+
+.exportButton {
+  @apply inline-flex items-center justify-center gap-2;
+  @apply font-medium;
+  @apply rounded-lg;
+  @apply transition-all duration-200;
+  @apply cursor-pointer;
+  @apply border;
+}
+
+.exportButton:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2;
+}
+
+/* Sizes */
+.small {
+  @apply px-3 py-1.5;
+  @apply text-xs;
+}
+
+.medium {
+  @apply px-4 py-2;
+  @apply text-sm;
+}
+
+/* Variants */
+.primary {
+  @apply bg-primary text-white border-primary;
+}
+
+.primary:hover:not(.disabled):not(.loading) {
+  @apply bg-primary-dark;
+}
+
+.secondary {
+  @apply bg-transparent border-neutral-300;
+  color: var(--text-primary);
+}
+
+.secondary:hover:not(.disabled):not(.loading) {
+  @apply bg-neutral-100;
+}
+
+:global(.dark) .secondary {
+  @apply border-neutral-600;
+}
+
+:global(.dark) .secondary:hover:not(.disabled):not(.loading) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ghost {
+  @apply bg-transparent border-transparent;
+  color: var(--text-primary);
+}
+
+.ghost:hover:not(.disabled):not(.loading) {
+  @apply bg-neutral-100;
+}
+
+:global(.dark) .ghost:hover:not(.disabled):not(.loading) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* States */
+.disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.loading {
+  @apply cursor-wait;
+}
+
+/* Icon */
+.icon {
+  @apply flex-shrink-0;
+}
+
+/* Label */
+.label {
+  @apply whitespace-nowrap;
+}
+
+/* Spinner Animation */
+.spinner {
+  @apply w-4 h-4;
+  @apply border-2 border-current border-t-transparent;
+  @apply rounded-full;
+  @apply animate-spin;
+}
+
+.small .spinner {
+  @apply w-3 h-3;
+}

@@ -35,6 +35,12 @@ type DashboardStats = {
     windSpeed: number | null
     alertCount: number
   }
+  settings: {
+    temp: { min: number; max: number }
+    humidity: { min: number; max: number }
+    pressure: { min: number; max: number }
+    co2: { min: number; max: number }
+  }
 }
 
 const DashboardPage: React.FC = () => {
@@ -91,6 +97,16 @@ const DashboardPage: React.FC = () => {
           ],
           alertCount: stats.weatherlink.alertCount,
         }
+      case 'Settings':
+        return {
+          items: [
+            { label: 'Temperature', value: `${stats.settings.temp.min} - ${stats.settings.temp.max}`, unit: '°C' },
+            { label: 'Humidity', value: `${stats.settings.humidity.min} - ${stats.settings.humidity.max}`, unit: '%' },
+            { label: 'Pressure', value: `${stats.settings.pressure.min} - ${stats.settings.pressure.max}`, unit: 'bar' },
+            { label: 'CO2', value: `${stats.settings.co2.min} - ${stats.settings.co2.max}`, unit: 'ppm' },
+          ],
+          alertCount: 0,
+        }
       default:
         return null
     }
@@ -108,6 +124,12 @@ const DashboardPage: React.FC = () => {
               <div className={styles.cardHeader}>
                 <Icon size={28} className={styles.icon} />
                 <h2 className={styles.cardTitle}>{card.title}</h2>
+                {/* Alert Badge - in header row */}
+                {cardStats && cardStats.alertCount > 0 && (
+                  <span className={styles.alertBadge}>
+                    {cardStats.alertCount} alert{cardStats.alertCount !== 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
 
               {/* Stats Section */}
@@ -116,34 +138,23 @@ const DashboardPage: React.FC = () => {
                   {isLoading ? (
                     <div className={styles.statsLoading}>Loading...</div>
                   ) : (
-                    <>
-                      <div className={styles.statsGrid}>
-                        {cardStats.items.map((item) => (
-                          <div key={item.label} className={styles.statItem}>
-                            <span className={styles.statLabel}>{item.label}</span>
-                            <span className={styles.statValue}>
-                              {item.value !== null ? `${item.value}${item.unit}` : '—'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Alert Badge */}
-                      {cardStats.alertCount > 0 && (
-                        <div className={styles.alertBadge}>
-                          {cardStats.alertCount} alert{cardStats.alertCount !== 1 ? 's' : ''}
+                    <div className={styles.statsGrid}>
+                      {cardStats.items.map((item) => (
+                        <div key={item.label} className={styles.statItem}>
+                          <span className={styles.statLabel}>{item.label}</span>
+                          <span className={styles.statValue}>
+                            {item.value !== null ? `${item.value} ${item.unit}` : '—'}
+                          </span>
                         </div>
-                      )}
-                    </>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Settings card has no stats */}
-              {!cardStats && (
-                <div className={styles.settingsText}>
-                  Configure thresholds
-                </div>
+              {/* Fallback for cards without stats */}
+              {!cardStats && !isLoading && (
+                <div className={styles.statsLoading}>No data</div>
               )}
             </Link>
           )

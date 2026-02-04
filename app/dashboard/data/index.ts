@@ -39,8 +39,8 @@ export const DASHBOARD_CARDS: DashboardCard[] = [
   },
   {
     title: 'Settings',
-    href: DASHBOARD_ROUTES.SETTINGS,
+    href: DASHBOARD_ROUTES.SETTINGS_APP,
     icon: Settings,
-    description: 'Configure your preferences',
+    description: 'Configure alert thresholds',
   },
 ]

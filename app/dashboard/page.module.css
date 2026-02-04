@@ -99,13 +99,13 @@
   color: #ffffff;
 }
 
-/* Alert Badge */
+/* Alert Badge - positioned in header row */
 .alertBadge {
-  @apply mt-3;
-  @apply px-3 py-1.5;
+  @apply ml-auto;
+  @apply px-2.5 py-1;
   @apply text-xs font-medium;
   @apply rounded-full;
-  @apply text-center;
+  @apply whitespace-nowrap;
   background-color: #fef2f2;
   color: #dc2626;
   border: 1px solid #fecaca;
@@ -117,16 +117,6 @@
   border-color: rgba(220, 38, 38, 0.3);
 }
 
-/* Settings Card Text */
-.settingsText {
-  @apply flex-1;
-  @apply flex items-center justify-center;
-  @apply text-sm text-neutral-500;
-}
-
-:global(.dark) .settingsText {
-  color: #9ca3af;
-}
 
 /* Mobile: Single column, reduced padding */
 @media (max-width: 767px) {

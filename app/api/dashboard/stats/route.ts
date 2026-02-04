@@ -27,6 +27,7 @@ export async function GET() {
       scadaStats,
       weatherlinkStats,
       alertCounts,
+      userSettings,
     ] = await Promise.all([
       // Thermionix: Get latest measurements and calculate averages
       getThermionixStats(),
@@ -36,6 +37,8 @@ export async function GET() {
       getWeatherlinkStats(),
       // Alert counts by source (unacknowledged only)
       getAlertCountsBySource(user.id),
+      // User settings for Settings card
+      getUserSettings(user.id),
     ])
 
     return NextResponse.json({
@@ -51,6 +54,7 @@ export async function GET() {
         ...weatherlinkStats,
         alertCount: alertCounts.WEATHERLINK || 0,
       },
+      settings: userSettings,
     })
   } catch (error) {
     console.error('[Dashboard Stats] Error:', error)
@@ -188,4 +192,25 @@ async function getAlertCountsBySource(userId: string) {
   }
 
   return counts
+}
+
+async function getUserSettings(userId: string) {
+  // Find or create settings - Prisma schema provides defaults
+  let settings = await prisma.userSettings.findUnique({
+    where: { user_id: userId },
+  })
+
+  if (!settings) {
+    // Create with Prisma schema defaults
+    settings = await prisma.userSettings.create({
+      data: { user_id: userId },
+    })
+  }
+
+  return {
+    temp: { min: settings.expected_temp_min, max: settings.expected_temp_max },
+    humidity: { min: settings.expected_humidity_min, max: settings.expected_humidity_max },
+    pressure: { min: settings.expected_pressure_min, max: settings.expected_pressure_max },
+    co2: { min: settings.expected_co2_min, max: settings.expected_co2_max },
+  }
 }

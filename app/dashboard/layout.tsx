@@ -37,12 +37,10 @@ import styles from "./layout.module.css";
 
 type DashboardLayoutProps = {
   children: React.ReactNode;
-  className?: string;
 };
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
-  className,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
@@ -65,7 +63,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }, [isMobileMenuOpen])
 
   // COMMENT: Root wrapper that fills viewport
-  const wrapperClasses = clsx(styles['dashboard-wrapper'], className);
+  const wrapperClasses = clsx(styles['dashboard-wrapper']);
 
   return (
     <AlertsProvider>

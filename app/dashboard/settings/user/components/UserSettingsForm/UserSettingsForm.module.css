@@ -1,0 +1,77 @@
+/**
+ * UserSettingsForm Styles
+ *
+ * LAYOUT:
+ * - Sections with clear visual separation
+ * - Theme-aware colors with dark mode support
+ */
+
+.container {
+  @apply space-y-6;
+}
+
+.section {
+  @apply pb-6 border-b border-neutral-200;
+}
+
+:global(.dark) .section {
+  border-bottom-color: rgb(64, 64, 64);
+}
+
+.section:last-of-type {
+  @apply border-b-0 pb-0;
+}
+
+.sectionTitle {
+  @apply text-base font-medium text-neutral-900 mb-1;
+}
+
+:global(.dark) .sectionTitle {
+  color: #ffffff;
+}
+
+.sectionDescription {
+  @apply text-sm text-neutral-600 mb-4;
+}
+
+:global(.dark) .sectionDescription {
+  color: rgb(163, 163, 163);
+}
+
+/* Account Info */
+.infoRow {
+  @apply flex justify-between items-center py-2;
+}
+
+.infoLabel {
+  @apply text-sm text-neutral-500;
+}
+
+:global(.dark) .infoLabel {
+  color: rgb(163, 163, 163);
+}
+
+.infoValue {
+  @apply text-sm font-medium text-neutral-900;
+}
+
+:global(.dark) .infoValue {
+  color: #ffffff;
+}
+
+/* Form */
+.form {
+  @apply space-y-4;
+}
+
+/* Success Banner */
+.successBanner {
+  @apply bg-success-bg border border-success text-success;
+  @apply px-4 py-3 rounded-lg mb-4;
+}
+
+:global(.dark) .successBanner {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgb(20, 83, 45);
+  color: rgb(52, 211, 153);
+}

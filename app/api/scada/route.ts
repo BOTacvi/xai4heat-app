@@ -212,9 +212,7 @@ export async function POST(req: Request) {
             datetime: measurement.datetime,
             location: measurement.location,
             t_amb: measurement.t_amb,
-            t_ref: measurement.t_ref,
             e: measurement.e,
-            pe: measurement.pe,
           },
           {
             user_id: user.id,

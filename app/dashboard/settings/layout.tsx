@@ -22,12 +22,10 @@ import styles from "./Settings.module.css";
 
 type SettingsLayoutProps = {
   children: React.ReactNode;
-  className?: string;
 };
 
 const SettingsLayout: React.FC<SettingsLayoutProps> = async ({
   children,
-  className,
 }) => {
   // COMMENT: Check authentication
   const user = await getCurrentUser();
@@ -37,7 +35,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = async ({
     redirect(AUTH_ROUTES.LOGIN);
   }
 
-  const containerClasses = clsx(styles.container, className);
+  const containerClasses = clsx(styles.container);
 
   return (
     <div className={containerClasses}>

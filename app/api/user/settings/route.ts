@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     }
 
     // STEP 4: Return success response
-    // COMMENT: NextResponse.json automatically sets Content-Type: application/json
+    // Settings always have values from Prisma schema defaults
     console.log('[Settings API] Successfully fetched settings:', settings.id)
     return NextResponse.json(settings)
 
@@ -113,13 +113,17 @@ export async function GET(request: NextRequest) {
  * {
  *   expected_temp_min: number,
  *   expected_temp_max: number,
+ *   expected_humidity_min: number,
+ *   expected_humidity_max: number,
  *   expected_pressure_min: number,
- *   expected_pressure_max: number
+ *   expected_pressure_max: number,
+ *   expected_co2_min: number,
+ *   expected_co2_max: number
  * }
  *
  * VALIDATION:
  * - Min values must be less than max values
- * - Values must be reasonable (temp: -50 to 100, pressure: 0 to 10)
+ * - Values must be within reasonable ranges
  *
  * RETURNS:
  * - 200: Updated UserSettings object
@@ -140,22 +144,23 @@ export async function PUT(request: NextRequest) {
     }
 
     // STEP 2: Parse request body
-    // COMMENT: request.json() parses JSON from request body
-    // This can throw if body is invalid JSON - caught by try/catch
     const body = await request.json()
 
     const {
       expected_temp_min,
       expected_temp_max,
+      expected_humidity_min,
+      expected_humidity_max,
       expected_pressure_min,
-      expected_pressure_max
+      expected_pressure_max,
+      expected_co2_min,
+      expected_co2_max,
     } = body
 
     // STEP 3: Validation
-    // COMMENT: Always validate user input on the backend!
-    // Never trust data from the client
     const errors: string[] = []
 
+    // Temperature validation (-50 to 100°C)
     if (typeof expected_temp_min !== 'number' || expected_temp_min < -50 || expected_temp_min > 100) {
       errors.push('Invalid expected_temp_min (must be between -50 and 100)')
     }
@@ -166,6 +171,18 @@ export async function PUT(request: NextRequest) {
       errors.push('expected_temp_min must be less than expected_temp_max')
     }
 
+    // Humidity validation (0 to 100%)
+    if (typeof expected_humidity_min !== 'number' || expected_humidity_min < 0 || expected_humidity_min > 100) {
+      errors.push('Invalid expected_humidity_min (must be between 0 and 100)')
+    }
+    if (typeof expected_humidity_max !== 'number' || expected_humidity_max < 0 || expected_humidity_max > 100) {
+      errors.push('Invalid expected_humidity_max (must be between 0 and 100)')
+    }
+    if (expected_humidity_min >= expected_humidity_max) {
+      errors.push('expected_humidity_min must be less than expected_humidity_max')
+    }
+
+    // Pressure validation (0 to 10 bar)
     if (typeof expected_pressure_min !== 'number' || expected_pressure_min < 0 || expected_pressure_min > 10) {
       errors.push('Invalid expected_pressure_min (must be between 0 and 10)')
     }
@@ -176,8 +193,18 @@ export async function PUT(request: NextRequest) {
       errors.push('expected_pressure_min must be less than expected_pressure_max')
     }
 
+    // CO2 validation (0 to 5000 ppm)
+    if (typeof expected_co2_min !== 'number' || expected_co2_min < 0 || expected_co2_min > 5000) {
+      errors.push('Invalid expected_co2_min (must be between 0 and 5000)')
+    }
+    if (typeof expected_co2_max !== 'number' || expected_co2_max < 0 || expected_co2_max > 5000) {
+      errors.push('Invalid expected_co2_max (must be between 0 and 5000)')
+    }
+    if (expected_co2_min >= expected_co2_max) {
+      errors.push('expected_co2_min must be less than expected_co2_max')
+    }
+
     if (errors.length > 0) {
-      // COMMENT: 400 Bad Request = client sent invalid data
       return NextResponse.json(
         { error: 'Validation failed', details: errors },
         { status: 400 }
@@ -185,23 +212,28 @@ export async function PUT(request: NextRequest) {
     }
 
     // STEP 4: Update or create settings
-    // COMMENT: Prisma's upsert = update if exists, create if not
-    // This is atomic (guaranteed to not have race conditions)
     const settings = await prisma.userSettings.upsert({
       where: { user_id: user.id },
       update: {
         expected_temp_min,
         expected_temp_max,
+        expected_humidity_min,
+        expected_humidity_max,
         expected_pressure_min,
         expected_pressure_max,
-        // updated_at is automatically set by Prisma (@updatedAt)
+        expected_co2_min,
+        expected_co2_max,
       },
       create: {
         user_id: user.id,
         expected_temp_min,
         expected_temp_max,
+        expected_humidity_min,
+        expected_humidity_max,
         expected_pressure_min,
         expected_pressure_max,
+        expected_co2_min,
+        expected_co2_max,
       }
     })
 

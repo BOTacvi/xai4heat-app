@@ -103,7 +103,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ className }) => {
       // 2. Auto-confirmed → redirect to app
       if (authData.session) {
         // User is auto-confirmed and logged in
-        // REFACTOR: Show success toast instead of inline banner
+        // Initialize user settings with defaults (humidity, temp, CO2, pressure)
+        fetch('/api/user/settings').catch((err) =>
+          console.error('Failed to initialize user settings:', err)
+        )
+
         toast.success('Account created successfully!')
         setTimeout(() => {
           router.push('/dashboard')

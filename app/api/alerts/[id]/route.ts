@@ -31,9 +31,9 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function PATCH(
@@ -41,6 +41,8 @@ export async function PATCH(
   { params }: RouteContext
 ) {
   try {
+    const { id } = await params
+
     // STEP 1: Authentication check
     const user = await getCurrentUser()
 
@@ -65,7 +67,7 @@ export async function PATCH(
 
     // STEP 4: Fetch alert and verify ownership
     const alert = await prisma.alert.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!alert) {
@@ -105,14 +107,14 @@ export async function PATCH(
     }
 
     console.log('[API /alerts/[id]] PATCH request:', {
-      alert_id: params.id,
+      alert_id: id,
       user_id: user.id,
       updates: updateData,
     })
 
     // STEP 7: Update alert
     const updatedAlert = await prisma.alert.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     })
 
