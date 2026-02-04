@@ -64,7 +64,7 @@ async function triggerRealAlerts() {
         co2: 600, // normal
       },
     })
-    console.log(`   ✅ Inserted measurement ID: ${tempMeasurement.id}`)
+    console.log(`   ✅ Inserted measurement for device ${tempMeasurement.device_id}`)
     console.log(`   📊 Temperature: ${highTemp}°C (threshold: ${userSettings.expected_temp_max}°C)`)
 
     // Trigger alert detection
@@ -84,8 +84,8 @@ async function triggerRealAlerts() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }
@@ -106,7 +106,7 @@ async function triggerRealAlerts() {
         co2: highCO2,
       },
     })
-    console.log(`   ✅ Inserted measurement ID: ${co2Measurement.id}`)
+    console.log(`   ✅ Inserted measurement for device ${co2Measurement.device_id}`)
     console.log(`   📊 CO2: ${highCO2} ppm (threshold: ${userSettings.expected_co2_max} ppm)`)
 
     // Trigger alert detection
@@ -126,8 +126,8 @@ async function triggerRealAlerts() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }
@@ -148,7 +148,7 @@ async function triggerRealAlerts() {
         co2: 600, // normal
       },
     })
-    console.log(`   ✅ Inserted measurement ID: ${lowTempMeasurement.id}`)
+    console.log(`   ✅ Inserted measurement for device ${lowTempMeasurement.device_id}`)
     console.log(`   📊 Temperature: ${lowTemp}°C (threshold: ${userSettings.expected_temp_min}°C)`)
 
     // Trigger alert detection
@@ -168,8 +168,8 @@ async function triggerRealAlerts() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }

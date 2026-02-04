@@ -27,7 +27,7 @@ async function testAlertSystem() {
 
     console.log(`✅ Found user settings for user: ${userSettings.user_id}`)
     console.log(`   Temperature range: ${userSettings.expected_temp_min}°C - ${userSettings.expected_temp_max}°C`)
-    console.log(`   Humidity range: ${userSettings.expected_pressure_min}% - ${userSettings.expected_pressure_max}%`)
+    console.log(`   Humidity range: ${userSettings.expected_humidity_min}% - ${userSettings.expected_humidity_max}%`)
     console.log(`   CO2 range: ${userSettings.expected_co2_min} - ${userSettings.expected_co2_max} ppm\n`)
 
     // STEP 2: Get a device (or create a mock one)
@@ -65,8 +65,8 @@ async function testAlertSystem() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }

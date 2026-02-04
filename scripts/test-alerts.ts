@@ -12,20 +12,15 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🧪 Testing Alert System...\n')
 
-  // Get the first user
-  const user = await prisma.user.findFirst()
+  // Get the first user settings (Supabase Auth manages users, not Prisma)
+  const settings = await prisma.userSettings.findFirst()
 
-  if (!user) {
-    console.error('❌ No user found. Please create a user first.')
+  if (!settings) {
+    console.error('❌ No user settings found. Please create a user first.')
     return
   }
 
-  console.log(`✅ Found user: ${user.email}`)
-
-  // Get user settings
-  const settings = await prisma.userSettings.findUnique({
-    where: { user_id: user.id }
-  })
+  console.log(`✅ Found user: ${settings.user_id}`)
 
   if (!settings) {
     console.error('❌ No settings found for user.')
@@ -34,7 +29,7 @@ async function main() {
 
   console.log(`\n📊 Current Thresholds:`)
   console.log(`   Temperature: ${settings.expected_temp_min}°C - ${settings.expected_temp_max}°C`)
-  console.log(`   Humidity: ${settings.expected_pressure_min}% - ${settings.expected_pressure_max}%`)
+  console.log(`   Humidity: ${settings.expected_humidity_min}% - ${settings.expected_humidity_max}%`)
   console.log(`   CO2: ${settings.expected_co2_min}ppm - ${settings.expected_co2_max}ppm\n`)
 
   // Get a thermionix device
@@ -92,7 +87,7 @@ async function main() {
   await delay(1000)
 
   // 3. High humidity alert
-  console.log(`3️⃣ Creating HIGH humidity reading (${settings.expected_pressure_max + 15}%)...`)
+  console.log(`3️⃣ Creating HIGH humidity reading (${settings.expected_humidity_max + 15}%)...`)
   await fetch('http://localhost:3000/api/thermionix', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -102,7 +97,7 @@ async function main() {
         device_id: deviceIdNum,
         probe_id: 1,
         temperature: 22,
-        relative_humidity: settings.expected_pressure_max + 15, // Too humid!
+        relative_humidity: settings.expected_humidity_max + 15, // Too humid!
         co2: 800
       }]
     })
@@ -140,7 +135,7 @@ async function main() {
         device_id: deviceIdNum,
         probe_id: 1,
         temperature: (settings.expected_temp_min + settings.expected_temp_max) / 2,
-        relative_humidity: (settings.expected_pressure_min + settings.expected_pressure_max) / 2,
+        relative_humidity: (settings.expected_humidity_min + settings.expected_humidity_max) / 2,
         co2: (settings.expected_co2_min + settings.expected_co2_max) / 2
       }]
     })

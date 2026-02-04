@@ -33,7 +33,7 @@ async function triggerTestAlerts() {
 
     console.log('📋 Current thresholds:')
     console.log(`   Temperature: ${userSettings.expected_temp_min}°C - ${userSettings.expected_temp_max}°C`)
-    console.log(`   Humidity: ${userSettings.expected_pressure_min}% - ${userSettings.expected_pressure_max}%`)
+    console.log(`   Humidity: ${userSettings.expected_humidity_min}% - ${userSettings.expected_humidity_max}%`)
     console.log(`   CO2: ${userSettings.expected_co2_min} - ${userSettings.expected_co2_max} ppm`)
     console.log('')
 
@@ -69,8 +69,8 @@ async function triggerTestAlerts() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }
@@ -96,8 +96,8 @@ async function triggerTestAlerts() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }
@@ -123,8 +123,8 @@ async function triggerTestAlerts() {
         user_id: userSettings.user_id,
         expected_temp_min: userSettings.expected_temp_min,
         expected_temp_max: userSettings.expected_temp_max,
-        expected_pressure_min: userSettings.expected_pressure_min,
-        expected_pressure_max: userSettings.expected_pressure_max,
+        expected_humidity_min: userSettings.expected_humidity_min,
+        expected_humidity_max: userSettings.expected_humidity_max,
         expected_co2_min: userSettings.expected_co2_min,
         expected_co2_max: userSettings.expected_co2_max,
       }

@@ -13,18 +13,12 @@
 .title {
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .loading {
-  color: #6b7280;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  color: var(--text-secondary);
 }
 
 .filters {
@@ -35,8 +29,8 @@
   margin-bottom: 24px;
   padding: 20px;
   border-radius: 12px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
 
   > * {
     flex: 1;
@@ -48,7 +42,7 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: #374151;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   margin: 0;
@@ -59,6 +53,12 @@
   height: 16px;
   cursor: pointer;
   accent-color: #16a34a;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .acknowledgeButton {
@@ -85,6 +85,10 @@
   cursor: not-allowed;
 }
 
+:global(.dark) .acknowledgeButton:disabled {
+  color: #000000;
+}
+
 .alertsList {
   display: flex;
   flex-direction: column;
@@ -95,12 +99,12 @@
   padding: 48px;
   text-align: center;
   border-radius: 12px;
-  background: white;
-  border: 2px dashed #e5e7eb;
+  background: var(--bg-card);
+  border: 2px dashed var(--border-color);
 }
 
 .emptyState p {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 16px;
   font-weight: 500;
   margin: 0;
