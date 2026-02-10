@@ -58,15 +58,17 @@
 .headerActions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
+  flex: 1;
 }
 
 .acknowledgeButton {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
   background: #16a34a;
   color: white;
   border: none;
@@ -117,23 +119,21 @@
 
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 12px;
+  }
+  .headerActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .filters {
     flex-direction: column;
   }
 
-  .headerActions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    width: 100%;
-  }
-
   .acknowledgeButton {
-    width: 100%;
+    max-width: 200px;
     justify-content: center;
   }
 }

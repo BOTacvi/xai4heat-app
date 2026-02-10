@@ -28,6 +28,7 @@ import { ExportButton } from "@/components/atoms/ExportButton";
 import { useThermionixRealtime } from "@/lib/hooks/useThermionixRealtime";
 import { exportThermionixData } from "@/lib/exports/thermionixExport";
 import type { ThermionixMeasurement as RealtimeThermionixMeasurement } from "@/lib/hooks/useThermionixRealtime";
+import styles from "./page.module.css";
 
 type Device = {
   device_id: string;
@@ -414,7 +415,7 @@ export default function ThermionixPage() {
         <h1 className="page-title" style={{ margin: 0 }}>
           Thermionix Monitoring
         </h1>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div className={styles.headerActions}>
           {selectedDeviceId && measurements.length > 0 && (
             <ExportButton
               onExport={handleExport}
@@ -467,8 +468,8 @@ export default function ThermionixPage() {
                 <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                   Expected: {expectedTempMin}°C - {expectedTempMax}°C
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
-                  <div style={{ textAlign: "center" }}>
+                <div className={styles.statsContainer}>
+                  <div className={`${styles.statItem} ${styles.currentStat}`}>
                     <div style={{ fontSize: "2rem", fontWeight: "bold", color: tempStatus.color }}>
                       {currentTemp !== null ? `${currentTemp.toFixed(1)}°C` : "—"}
                     </div>
@@ -481,10 +482,10 @@ export default function ThermionixPage() {
                       </div>
                     )}
                   </div>
-                  <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                  <div className={`${styles.statDivider} ${styles.currentDivider}`}></div>
                   {tempStats && (
-                    <>
-                      <div style={{ textAlign: "center" }}>
+                    <div className={styles.statsSecondary}>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.avg, expectedTempMin, expectedTempMax) }}>
                           {tempStats.avg.toFixed(1)}°C
                         </div>
@@ -492,8 +493,8 @@ export default function ThermionixPage() {
                           Average
                         </div>
                       </div>
-                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
-                      <div style={{ textAlign: "center" }}>
+                      <div className={styles.statDivider}></div>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.min, expectedTempMin, expectedTempMax) }}>
                           {tempStats.min.toFixed(1)}°C
                         </div>
@@ -501,8 +502,8 @@ export default function ThermionixPage() {
                           Minimum
                         </div>
                       </div>
-                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
-                      <div style={{ textAlign: "center" }}>
+                      <div className={styles.statDivider}></div>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.max, expectedTempMin, expectedTempMax) }}>
                           {tempStats.max.toFixed(1)}°C
                         </div>
@@ -510,7 +511,7 @@ export default function ThermionixPage() {
                           Maximum
                         </div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
@@ -540,8 +541,8 @@ export default function ThermionixPage() {
                 <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                   Expected: {expectedHumidityMin}% - {expectedHumidityMax}%
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
-                  <div style={{ textAlign: "center" }}>
+                <div className={styles.statsContainer}>
+                  <div className={`${styles.statItem} ${styles.currentStat}`}>
                     <div style={{ fontSize: "2rem", fontWeight: "bold", color: humidityStatus.color }}>
                       {currentHumidity !== null ? `${currentHumidity.toFixed(1)}%` : "—"}
                     </div>
@@ -554,10 +555,10 @@ export default function ThermionixPage() {
                       </div>
                     )}
                   </div>
-                  <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                  <div className={`${styles.statDivider} ${styles.currentDivider}`}></div>
                   {humidityStats && (
-                    <>
-                      <div style={{ textAlign: "center" }}>
+                    <div className={styles.statsSecondary}>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.avg, expectedHumidityMin, expectedHumidityMax) }}>
                           {humidityStats.avg.toFixed(1)}%
                         </div>
@@ -565,8 +566,8 @@ export default function ThermionixPage() {
                           Average
                         </div>
                       </div>
-                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
-                      <div style={{ textAlign: "center" }}>
+                      <div className={styles.statDivider}></div>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.min, expectedHumidityMin, expectedHumidityMax) }}>
                           {humidityStats.min.toFixed(1)}%
                         </div>
@@ -574,8 +575,8 @@ export default function ThermionixPage() {
                           Minimum
                         </div>
                       </div>
-                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
-                      <div style={{ textAlign: "center" }}>
+                      <div className={styles.statDivider}></div>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.max, expectedHumidityMin, expectedHumidityMax) }}>
                           {humidityStats.max.toFixed(1)}%
                         </div>
@@ -583,7 +584,7 @@ export default function ThermionixPage() {
                           Maximum
                         </div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
@@ -613,8 +614,8 @@ export default function ThermionixPage() {
                 <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                   Expected: {expectedCO2Min} - {expectedCO2Max} ppm
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
-                  <div style={{ textAlign: "center" }}>
+                <div className={styles.statsContainer}>
+                  <div className={`${styles.statItem} ${styles.currentStat}`}>
                     <div style={{ fontSize: "2rem", fontWeight: "bold", color: co2Status.color }}>
                       {currentCO2 !== null ? `${currentCO2.toFixed(0)} ppm` : "—"}
                     </div>
@@ -627,10 +628,10 @@ export default function ThermionixPage() {
                       </div>
                     )}
                   </div>
-                  <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
+                  <div className={`${styles.statDivider} ${styles.currentDivider}`}></div>
                   {co2Stats && (
-                    <>
-                      <div style={{ textAlign: "center" }}>
+                    <div className={styles.statsSecondary}>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.avg, expectedCO2Min, expectedCO2Max) }}>
                           {co2Stats.avg.toFixed(0)} ppm
                         </div>
@@ -638,8 +639,8 @@ export default function ThermionixPage() {
                           Average
                         </div>
                       </div>
-                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
-                      <div style={{ textAlign: "center" }}>
+                      <div className={styles.statDivider}></div>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.min, expectedCO2Min, expectedCO2Max) }}>
                           {co2Stats.min.toFixed(0)} ppm
                         </div>
@@ -647,8 +648,8 @@ export default function ThermionixPage() {
                           Minimum
                         </div>
                       </div>
-                      <div style={{ width: "1px", height: "60px", backgroundColor: "var(--border-color)" }}></div>
-                      <div style={{ textAlign: "center" }}>
+                      <div className={styles.statDivider}></div>
+                      <div className={styles.statItem}>
                         <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.max, expectedCO2Min, expectedCO2Max) }}>
                           {co2Stats.max.toFixed(0)} ppm
                         </div>
@@ -656,7 +657,7 @@ export default function ThermionixPage() {
                           Maximum
                         </div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>

@@ -7,6 +7,18 @@
   @apply flex flex-col gap-6;
 }
 
+@media (max-width: 1023px) {
+  .page {
+    @apply p-5 gap-5;
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    @apply p-4 gap-4;
+  }
+}
+
 .title {
   @apply text-3xl font-bold mb-2;
   color: #171717;
