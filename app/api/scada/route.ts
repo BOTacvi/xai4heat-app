@@ -69,20 +69,54 @@ export async function GET(req: Request) {
       }
     }
 
-    console.log("[SCADA API] WHERE clause:", JSON.stringify(whereClause, null, 2));
+    let data: any[];
+    if (!from && !to) {
+      // No date range — fast path: return most recent N records (used for lamela list)
+      data = await prisma.scada_measurements.findMany({
+        where: whereClause,
+        orderBy: { datetime: "desc" },
+        take: limit,
+      });
+    } else {
+      // Date range specified — sample evenly across the full range
+      const totalCount = await prisma.scada_measurements.count({ where: whereClause });
 
-    const data = await prisma.scada_measurements.findMany({
-      where: whereClause,
-      orderBy: {
-        datetime: "desc",
-      },
-      take: limit,
-    });
+      if (totalCount <= limit) {
+        data = await prisma.scada_measurements.findMany({
+          where: whereClause,
+          orderBy: { datetime: "asc" },
+        });
+      } else {
+        const step = Math.max(1, Math.floor(totalCount / limit));
+        const safeLamela = lamela ? lamela.replace(/'/g, "''") : null;
+        const lamelaClause = safeLamela ? `AND location LIKE '%${safeLamela}%'` : "";
+        const fromISO = from ? from.toISOString() : null;
+        const toISO = to ? to.toISOString() : null;
+        const fromClause = fromISO ? `AND datetime >= '${fromISO}'::timestamptz` : "";
+        const toClause = toISO ? `AND datetime <= '${toISO}'::timestamptz` : "";
 
-    console.log("[SCADA API] Found", data.length, "measurements");
-    if (data.length > 0) {
-      console.log("[SCADA API] First result datetime:", data[0].datetime);
-      console.log("[SCADA API] Last result datetime:", data[data.length - 1].datetime);
+        try {
+          data = await prisma.$queryRawUnsafe(`
+            SELECT datetime, location, t_amb, t_ref, t_sup_prim, t_ret_prim, t_sup_sec, t_ret_sec, e, pe
+            FROM (
+              SELECT datetime, location, t_amb, t_ref, t_sup_prim, t_ret_prim, t_sup_sec, t_ret_sec, e, pe,
+                     ROW_NUMBER() OVER (ORDER BY datetime ASC) AS rn
+              FROM "xai4heat_db"."scada_measurements"
+              WHERE 1=1 ${lamelaClause} ${fromClause} ${toClause}
+            ) sub
+            WHERE (rn - 1) % ${step} = 0
+            ORDER BY datetime ASC
+            LIMIT ${limit}
+          `);
+        } catch (rawSqlError) {
+          console.error("[SCADA API] Raw SQL sampling failed, falling back:", rawSqlError);
+          data = (await prisma.scada_measurements.findMany({
+            where: whereClause,
+            orderBy: { datetime: "desc" },
+            take: limit,
+          })).reverse();
+        }
+      }
     }
 
     return NextResponse.json({

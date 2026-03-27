@@ -66,12 +66,12 @@ export async function GET() {
 }
 
 async function getThermionixStats() {
-  // Get measurements from last 24 hours for averages
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  // Get measurements from last 7 days for averages
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
   const measurements = await prisma.thermionyx_measurements.findMany({
     where: {
-      datetime: { gte: oneDayAgo },
+      datetime: { gte: sevenDaysAgo },
     },
     orderBy: { datetime: 'desc' },
     take: 1000, // Limit for performance
@@ -108,11 +108,11 @@ async function getThermionixStats() {
 
 async function getScadaStats() {
   // Get latest measurement per location
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
   const measurements = await prisma.scada_measurements.findMany({
     where: {
-      datetime: { gte: oneDayAgo },
+      datetime: { gte: sevenDaysAgo },
     },
     orderBy: { datetime: 'desc' },
     take: 500,

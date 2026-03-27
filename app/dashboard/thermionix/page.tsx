@@ -88,6 +88,7 @@ export default function ThermionixPage() {
   // State
   const [devices, setDevices] = useState<Device[]>([]);
   const [measurements, setMeasurements] = useState<ThermionixMeasurement[]>([]);
+  const [co2Measurements, setCo2Measurements] = useState<ThermionixMeasurement[]>([]);
   const [isLoadingDevices, setIsLoadingDevices] = useState(true);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
   const [expectedTempMin, setExpectedTempMin] = useState<number>(18);
@@ -96,6 +97,17 @@ export default function ThermionixPage() {
   const [expectedHumidityMax, setExpectedHumidityMax] = useState<number>(70);
   const [expectedCO2Min, setExpectedCO2Min] = useState<number>(400);
   const [expectedCO2Max, setExpectedCO2Max] = useState<number>(1000);
+
+  // Get selected device name for export
+  const selectedDevice = devices.find((d) => d.device_id === selectedDeviceId);
+  const selectedDeviceName = selectedDevice?.name || selectedDeviceId;
+
+  // Find the paired CO2 device (e.g. L8_53_13 → L8_53_13_CO2)
+  const co2DeviceId = useMemo(() => {
+    if (!selectedDevice) return null;
+    const co2Device = devices.find((d) => d.name === `${selectedDevice.name}_CO2`);
+    return co2Device?.device_id || null;
+  }, [selectedDevice, devices]);
 
   // Fetch devices on mount
   useEffect(() => {
@@ -165,6 +177,32 @@ export default function ThermionixPage() {
 
     fetchMeasurements();
   }, [selectedDeviceId, dateRange]);
+
+  // Fetch CO2 measurements from the paired CO2 probe when available
+  useEffect(() => {
+    if (!co2DeviceId) {
+      setCo2Measurements([]);
+      return;
+    }
+
+    const fetchCo2Measurements = async () => {
+      try {
+        const params = new URLSearchParams({
+          device_id: co2DeviceId,
+          from: dateRange.from,
+          to: dateRange.to,
+          limit: "1000",
+        });
+        const res = await fetch(`/api/thermionix?${params}`);
+        const data = await res.json();
+        setCo2Measurements(data.measurements || []);
+      } catch (error) {
+        console.error("Failed to fetch CO2 measurements:", error);
+      }
+    };
+
+    fetchCo2Measurements();
+  }, [co2DeviceId, dateRange]);
 
   // Handle new measurements from realtime - prepend to existing measurements
   const handleNewMeasurement = useCallback(
@@ -270,17 +308,12 @@ export default function ThermionixPage() {
       };
     });
 
-  // Get current values (latest measurement)
-  const currentTemp =
-    measurements.length > 0 ? measurements[0].temperature : null;
-  const currentHumidity =
-    measurements.length > 0 ? measurements[0].relative_humidity : null;
-  const currentCO2 =
-    measurements.length > 0 ? measurements[0].co2 : null;
-
-  // Get selected device name for export
-  const selectedDevice = devices.find((d) => d.device_id === selectedDeviceId);
-  const selectedDeviceName = selectedDevice?.name || selectedDeviceId;
+  // Get current values (most recent = last element, data is in ASC order)
+  const lastMeasurement = measurements.length > 0 ? measurements[measurements.length - 1] : null;
+  const lastCo2Measurement = co2Measurements.length > 0 ? co2Measurements[co2Measurements.length - 1] : null;
+  const currentTemp = lastMeasurement?.temperature ?? null;
+  const currentHumidity = lastMeasurement?.relative_humidity ?? null;
+  const currentCO2 = lastCo2Measurement?.co2 ?? null;
 
   // Helper function to get color and status based on expected range
   const getValueStatus = (
@@ -343,9 +376,9 @@ export default function ThermionixPage() {
     return { avg, min, max };
   }, [measurements]);
 
-  // Calculate CO2 statistics
+  // Calculate CO2 statistics from the paired CO2 probe
   const co2Stats = useMemo(() => {
-    const co2Values = measurements
+    const co2Values = co2Measurements
       .filter((m) => m.co2 !== null)
       .map((m) => m.co2!);
 
@@ -357,7 +390,7 @@ export default function ThermionixPage() {
     const max = Math.max(...co2Values);
 
     return { avg, min, max };
-  }, [measurements]);
+  }, [co2Measurements]);
 
   // Handle export to Excel
   const handleExport = useCallback(() => {
@@ -375,32 +408,27 @@ export default function ThermionixPage() {
     );
   }, [measurements, selectedDeviceName, dateRange, tempStats, humidityStats, co2Stats]);
 
-  // Prepare chart data
+  // Prepare chart data (API now returns data in ASC order already)
   const tempChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.temperature !== null)
     .map((m) => ({
       timestamp: m.datetime,
       value: m.temperature!,
-    }))
-    .reverse(); // Reverse to show oldest first
+    }));
 
   const humidityChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.relative_humidity !== null)
     .map((m) => ({
       timestamp: m.datetime,
       value: m.relative_humidity!,
-    }))
-    .reverse();
+    }));
 
-  const co2ChartData: TimeSeriesDataPoint[] = measurements
+  const co2ChartData: TimeSeriesDataPoint[] = co2Measurements
     .filter((m) => m.co2 !== null)
     .map((m) => ({
       timestamp: m.datetime,
       value: m.co2!,
-    }))
-    .reverse();
-
-  console.log({ deviceOptions, selectedDeviceId, devices });
+    }));
 
   return (
     <div className="page-container">
@@ -456,8 +484,7 @@ export default function ThermionixPage() {
         )}
       </div>
 
-      {selectedDeviceId && (
-        <div className="content-grid">
+      <div className="content-grid">
           {/* Temperature Card with Stats - Full Width */}
           <div className="grid-item-full-width">
             {isLoadingMeasurements ? (
@@ -483,11 +510,10 @@ export default function ThermionixPage() {
                     )}
                   </div>
                   <div className={`${styles.statDivider} ${styles.currentDivider}`}></div>
-                  {tempStats && (
-                    <div className={styles.statsSecondary}>
+                  <div className={styles.statsSecondary}>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.avg, expectedTempMin, expectedTempMax) }}>
-                          {tempStats.avg.toFixed(1)}°C
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: tempStats ? getValueColor(tempStats.avg, expectedTempMin, expectedTempMax) : "inherit" }}>
+                          {tempStats ? `${tempStats.avg.toFixed(1)}°C` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Average
@@ -495,8 +521,8 @@ export default function ThermionixPage() {
                       </div>
                       <div className={styles.statDivider}></div>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.min, expectedTempMin, expectedTempMax) }}>
-                          {tempStats.min.toFixed(1)}°C
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: tempStats ? getValueColor(tempStats.min, expectedTempMin, expectedTempMax) : "inherit" }}>
+                          {tempStats ? `${tempStats.min.toFixed(1)}°C` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Minimum
@@ -504,15 +530,14 @@ export default function ThermionixPage() {
                       </div>
                       <div className={styles.statDivider}></div>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(tempStats.max, expectedTempMin, expectedTempMax) }}>
-                          {tempStats.max.toFixed(1)}°C
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: tempStats ? getValueColor(tempStats.max, expectedTempMin, expectedTempMax) : "inherit" }}>
+                          {tempStats ? `${tempStats.max.toFixed(1)}°C` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Maximum
                         </div>
                       </div>
                     </div>
-                  )}
                 </div>
               </div>
             )}
@@ -556,11 +581,10 @@ export default function ThermionixPage() {
                     )}
                   </div>
                   <div className={`${styles.statDivider} ${styles.currentDivider}`}></div>
-                  {humidityStats && (
-                    <div className={styles.statsSecondary}>
+                  <div className={styles.statsSecondary}>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.avg, expectedHumidityMin, expectedHumidityMax) }}>
-                          {humidityStats.avg.toFixed(1)}%
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: humidityStats ? getValueColor(humidityStats.avg, expectedHumidityMin, expectedHumidityMax) : "inherit" }}>
+                          {humidityStats ? `${humidityStats.avg.toFixed(1)}%` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Average
@@ -568,8 +592,8 @@ export default function ThermionixPage() {
                       </div>
                       <div className={styles.statDivider}></div>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.min, expectedHumidityMin, expectedHumidityMax) }}>
-                          {humidityStats.min.toFixed(1)}%
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: humidityStats ? getValueColor(humidityStats.min, expectedHumidityMin, expectedHumidityMax) : "inherit" }}>
+                          {humidityStats ? `${humidityStats.min.toFixed(1)}%` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Minimum
@@ -577,15 +601,14 @@ export default function ThermionixPage() {
                       </div>
                       <div className={styles.statDivider}></div>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(humidityStats.max, expectedHumidityMin, expectedHumidityMax) }}>
-                          {humidityStats.max.toFixed(1)}%
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: humidityStats ? getValueColor(humidityStats.max, expectedHumidityMin, expectedHumidityMax) : "inherit" }}>
+                          {humidityStats ? `${humidityStats.max.toFixed(1)}%` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Maximum
                         </div>
                       </div>
                     </div>
-                  )}
                 </div>
               </div>
             )}
@@ -629,11 +652,10 @@ export default function ThermionixPage() {
                     )}
                   </div>
                   <div className={`${styles.statDivider} ${styles.currentDivider}`}></div>
-                  {co2Stats && (
-                    <div className={styles.statsSecondary}>
+                  <div className={styles.statsSecondary}>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.avg, expectedCO2Min, expectedCO2Max) }}>
-                          {co2Stats.avg.toFixed(0)} ppm
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: co2Stats ? getValueColor(co2Stats.avg, expectedCO2Min, expectedCO2Max) : "inherit" }}>
+                          {co2Stats ? `${co2Stats.avg.toFixed(0)} ppm` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Average
@@ -641,8 +663,8 @@ export default function ThermionixPage() {
                       </div>
                       <div className={styles.statDivider}></div>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.min, expectedCO2Min, expectedCO2Max) }}>
-                          {co2Stats.min.toFixed(0)} ppm
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: co2Stats ? getValueColor(co2Stats.min, expectedCO2Min, expectedCO2Max) : "inherit" }}>
+                          {co2Stats ? `${co2Stats.min.toFixed(0)} ppm` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Minimum
@@ -650,15 +672,14 @@ export default function ThermionixPage() {
                       </div>
                       <div className={styles.statDivider}></div>
                       <div className={styles.statItem}>
-                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: getValueColor(co2Stats.max, expectedCO2Min, expectedCO2Max) }}>
-                          {co2Stats.max.toFixed(0)} ppm
+                        <div style={{ fontSize: "1.25rem", fontWeight: "600", color: co2Stats ? getValueColor(co2Stats.max, expectedCO2Min, expectedCO2Max) : "inherit" }}>
+                          {co2Stats ? `${co2Stats.max.toFixed(0)} ppm` : "—"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                           Maximum
                         </div>
                       </div>
                     </div>
-                  )}
                 </div>
               </div>
             )}
@@ -677,7 +698,6 @@ export default function ThermionixPage() {
             )}
           </div>
         </div>
-      )}
     </div>
   );
 }

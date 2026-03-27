@@ -139,9 +139,11 @@ export async function GET(req: Request) {
     // LEARNING: We build the WHERE object conditionally based on params
     // This is more efficient than separate queries for each case
 
-    // COMMENT: Start with required filter (device_id)
+    // COMMENT: Filter by probe_id - the Device table uses probe_ids (10315-10338) as device_id,
+    // while thermionyx_measurements.device_id is the hub ID (10046-10049).
+    // Probe_id matches the Device table's device_id, so we query by probe_id.
     const whereClause: any = {
-      device_id: deviceId,
+      probe_id: deviceId,
     };
 
     // COMMENT: Add date filters if provided
@@ -173,20 +175,46 @@ export async function GET(req: Request) {
     // - where: SQL WHERE clause (filtering)
     // - orderBy: SQL ORDER BY clause (sorting)
     // - take: SQL LIMIT clause (max records to return)
-    console.log("[THERMIONIX API] WHERE clause:", JSON.stringify(whereClause, null, 2));
+    // Count total records matching filters (fast indexed query)
+    const totalCount = await prisma.thermionyx_measurements.count({ where: whereClause });
 
-    const data = await prisma.thermionyx_measurements.findMany({
-      where: whereClause,
-      orderBy: {
-        datetime: "desc", // Most recent first (DESC = descending)
-      },
-      take: limit, // Limit to prevent huge responses
-    });
+    let data: any[];
+    if (totalCount <= limit) {
+      // Fewer records than limit — return all in chronological order
+      data = await prisma.thermionyx_measurements.findMany({
+        where: whereClause,
+        orderBy: { datetime: "asc" },
+      });
+    } else {
+      // More records than limit — sample evenly across the full range
+      // Step = how many records to skip between each sample point
+      const step = Math.max(1, Math.floor(totalCount / limit));
+      const fromISO = from ? from.toISOString() : null;
+      const toISO = to ? to.toISOString() : null;
+      const fromClause = fromISO ? `AND datetime >= '${fromISO}'::timestamptz` : "";
+      const toClause = toISO ? `AND datetime <= '${toISO}'::timestamptz` : "";
 
-    console.log("[THERMIONIX API] Found", data.length, "measurements");
-    if (data.length > 0) {
-      console.log("[THERMIONIX API] First result datetime:", data[0].datetime);
-      console.log("[THERMIONIX API] Last result datetime:", data[data.length - 1].datetime);
+      try {
+        data = await prisma.$queryRawUnsafe(`
+          SELECT datetime, device_id, probe_id, temperature, relative_humidity, co2
+          FROM (
+            SELECT datetime, device_id, probe_id, temperature, relative_humidity, co2,
+                   ROW_NUMBER() OVER (ORDER BY datetime ASC) AS rn
+            FROM "xai4heat_db"."thermionyx_measurements"
+            WHERE probe_id = ${deviceId} ${fromClause} ${toClause}
+          ) sub
+          WHERE (rn - 1) % ${step} = 0
+          ORDER BY datetime ASC
+          LIMIT ${limit}
+        `);
+      } catch (rawSqlError) {
+        console.error("[THERMIONIX API] Raw SQL sampling failed, falling back:", rawSqlError);
+        data = (await prisma.thermionyx_measurements.findMany({
+          where: whereClause,
+          orderBy: { datetime: "desc" },
+          take: limit,
+        })).reverse();
+      }
     }
 
     // STEP 7: Return successful response

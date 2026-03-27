@@ -127,7 +127,8 @@ export default function WeatherLinkPage() {
     router.push(newURL);
   };
 
-  const latest = measurements.length > 0 ? measurements[0] : null;
+  // Most recent = last element (data is in ASC order when date range is specified)
+  const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
   const latestTimestamp = latest?.datetime;
 
   // Calculate temperature statistics
@@ -167,8 +168,7 @@ export default function WeatherLinkPage() {
     .map((m) => ({
       timestamp: m.datetime,
       value: m.temp_out!,
-    }))
-    .reverse();
+    }));
 
   return (
     <div className={styles.page}>

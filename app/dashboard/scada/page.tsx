@@ -229,14 +229,14 @@ export default function ScadaPage() {
     value: lamela,
   }));
 
-  const currentTemp = measurements.length > 0 ? measurements[0].t_amb : null;
-  const currentPressure = measurements.length > 0 ? measurements[0].e : null;
-  const currentTSupPrim = measurements.length > 0 ? measurements[0].t_sup_prim : null;
-  const currentTRetPrim = measurements.length > 0 ? measurements[0].t_ret_prim : null;
-  const currentTSupSec = measurements.length > 0 ? measurements[0].t_sup_sec : null;
-  const currentTRetSec = measurements.length > 0 ? measurements[0].t_ret_sec : null;
-  const latestTimestamp =
-    measurements.length > 0 ? measurements[0].datetime : undefined;
+  // Most recent = last element (data is in ASC order)
+  const lastMeasurement = measurements.length > 0 ? measurements[measurements.length - 1] : null;
+  const currentTemp = lastMeasurement?.t_amb ?? null;
+  const currentPressure = lastMeasurement?.e ?? null;
+  const currentTSupPrim = lastMeasurement?.t_sup_prim ?? null;
+  const currentTRetPrim = lastMeasurement?.t_ret_prim ?? null;
+  const currentTSupSec = lastMeasurement?.t_sup_sec ?? null;
+  const currentTRetSec = lastMeasurement?.t_ret_sec ?? null;
 
   // Calculate temperature statistics
   const tempStats = useMemo(() => {
@@ -270,13 +270,11 @@ export default function ScadaPage() {
 
   const tempChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.t_amb !== null)
-    .map((m) => ({ timestamp: m.datetime, value: m.t_amb! }))
-    .reverse();
+    .map((m) => ({ timestamp: m.datetime, value: m.t_amb! }));
 
   const pressureChartData: TimeSeriesDataPoint[] = measurements
     .filter((m) => m.e !== null)
-    .map((m) => ({ timestamp: m.datetime, value: m.e! }))
-    .reverse();
+    .map((m) => ({ timestamp: m.datetime, value: m.e! }));
 
   return (
     <div className="page-container">
@@ -323,8 +321,7 @@ export default function ScadaPage() {
         )}
       </div>
 
-      {selectedLamela && (
-        <div className="content-grid">
+      <div className="content-grid">
           {/* Temperature Card with Stats */}
           <div className="grid-item">
             {isLoadingMeasurements ? (
@@ -345,8 +342,7 @@ export default function ScadaPage() {
                     Current
                   </div>
                 </div>
-                {tempStats && (
-                  <div
+                <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr 1fr",
@@ -356,64 +352,30 @@ export default function ScadaPage() {
                     }}
                   >
                     <div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "600",
-                          color: "#10b981",
-                        }}
-                      >
-                        {tempStats.avg.toFixed(1)}°C
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#10b981" }}>
+                        {tempStats ? `${tempStats.avg.toFixed(1)}°C` : "—"}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                         Average
                       </div>
                     </div>
                     <div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "600",
-                          color: "#3b82f6",
-                        }}
-                      >
-                        {tempStats.min.toFixed(1)}°C
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#3b82f6" }}>
+                        {tempStats ? `${tempStats.min.toFixed(1)}°C` : "—"}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                         Minimum
                       </div>
                     </div>
                     <div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "600",
-                          color: "#ef4444",
-                        }}
-                      >
-                        {tempStats.max.toFixed(1)}°C
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ef4444" }}>
+                        {tempStats ? `${tempStats.max.toFixed(1)}°C` : "—"}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                         Maximum
                       </div>
                     </div>
                   </div>
-                )}
               </div>
             )}
           </div>
@@ -440,8 +402,7 @@ export default function ScadaPage() {
                     Current
                   </div>
                 </div>
-                {pressureStats && (
-                  <div
+                <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr 1fr",
@@ -451,64 +412,30 @@ export default function ScadaPage() {
                     }}
                   >
                     <div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "600",
-                          color: "#10b981",
-                        }}
-                      >
-                        {pressureStats.avg.toFixed(1)} bar
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#10b981" }}>
+                        {pressureStats ? `${pressureStats.avg.toFixed(1)} bar` : "—"}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                         Average
                       </div>
                     </div>
                     <div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "600",
-                          color: "#3b82f6",
-                        }}
-                      >
-                        {pressureStats.min.toFixed(1)} bar
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#3b82f6" }}>
+                        {pressureStats ? `${pressureStats.min.toFixed(1)} bar` : "—"}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                         Minimum
                       </div>
                     </div>
                     <div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "600",
-                          color: "#ef4444",
-                        }}
-                      >
-                        {pressureStats.max.toFixed(1)} bar
+                      <div style={{ fontSize: "1.25rem", fontWeight: "600", color: "#ef4444" }}>
+                        {pressureStats ? `${pressureStats.max.toFixed(1)} bar` : "—"}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                         Maximum
                       </div>
                     </div>
                   </div>
-                )}
               </div>
             )}
           </div>
@@ -626,7 +553,6 @@ export default function ScadaPage() {
             )}
           </div>
         </div>
-      )}
     </div>
   );
 }
