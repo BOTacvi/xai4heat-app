@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { DASHBOARD_CARDS } from './data'
+import { useAlerts } from '@/lib/contexts/AlertsContext'
 import styles from './page.module.css'
 
 type DashboardStats = {
@@ -46,6 +47,15 @@ type DashboardStats = {
 const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { alerts } = useAlerts()
+
+  // Live unread alert counts per source (always in sync with the bell)
+  const liveAlertCounts = alerts
+    .filter((a) => !a.is_read)
+    .reduce<Record<string, number>>((acc, a) => {
+      acc[a.source] = (acc[a.source] || 0) + 1
+      return acc
+    }, {})
 
   useEffect(() => {
     async function fetchStats() {
@@ -77,7 +87,7 @@ const DashboardPage: React.FC = () => {
             { label: 'Avg Humidity', value: stats.thermionix.avgHumidity, unit: '%' },
             { label: 'Avg CO2', value: stats.thermionix.avgCO2, unit: 'ppm' },
           ],
-          alertCount: stats.thermionix.alertCount,
+          alertCount: liveAlertCounts['THERMIONIX'] ?? 0,
         }
       case 'SCADA':
         return {
@@ -86,7 +96,7 @@ const DashboardPage: React.FC = () => {
             { label: 'Pressure', value: stats.scada.avgPressure, unit: 'bar' },
             { label: 'Locations', value: stats.scada.locationCount, unit: '' },
           ],
-          alertCount: stats.scada.alertCount,
+          alertCount: liveAlertCounts['SCADA'] ?? 0,
         }
       case 'WeatherLink':
         return {
@@ -95,7 +105,7 @@ const DashboardPage: React.FC = () => {
             { label: 'Humidity', value: stats.weatherlink.humOut, unit: '%' },
             { label: 'Wind', value: stats.weatherlink.windSpeed, unit: 'm/s' },
           ],
-          alertCount: stats.weatherlink.alertCount,
+          alertCount: liveAlertCounts['WEATHERLINK'] ?? 0,
         }
       case 'Settings':
         return {

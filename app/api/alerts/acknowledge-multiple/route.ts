@@ -88,6 +88,7 @@ export async function POST(req: Request) {
         is_acknowledged: true,
         acknowledged_at: now,
         acknowledged_by: user.id,
+        is_read: true,
       },
     })
 

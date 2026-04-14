@@ -396,8 +396,20 @@ export default function ThermionixPage() {
   const handleExport = useCallback(() => {
     if (measurements.length === 0) return;
 
+    // Build a co2 lookup by datetime string for fast matching
+    const co2ByDatetime = new Map<string, number | null>()
+    co2Measurements.forEach((m) => {
+      co2ByDatetime.set(m.datetime, m.co2)
+    })
+
+    // Merge co2 values into main measurements rows
+    const measurementsWithCo2 = measurements.map((m) => ({
+      ...m,
+      co2: co2ByDatetime.get(m.datetime) ?? null,
+    }))
+
     exportThermionixData(
-      measurements,
+      measurementsWithCo2,
       selectedDeviceName,
       dateRange,
       {
@@ -406,7 +418,7 @@ export default function ThermionixPage() {
         co2: co2Stats,
       }
     );
-  }, [measurements, selectedDeviceName, dateRange, tempStats, humidityStats, co2Stats]);
+  }, [measurements, co2Measurements, selectedDeviceName, dateRange, tempStats, humidityStats, co2Stats]);
 
   // Prepare chart data (API now returns data in ASC order already)
   const tempChartData: TimeSeriesDataPoint[] = measurements

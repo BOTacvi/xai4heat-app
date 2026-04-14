@@ -53,13 +53,13 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
  * deviation = |measured_value - threshold_value| / threshold_value * 100
  *
  * SEVERITY LEVELS:
- * - HIGH: deviation > 20% (critical, needs immediate action)
- * - MEDIUM: deviation > 10% (notable, should be reviewed)
- * - LOW: deviation <= 10% (minor, informational)
+ * - HIGH: deviation > 15% (critical, needs immediate action)
+ * - MEDIUM: deviation > 8% (notable, should be reviewed)
+ * - LOW: deviation <= 8% (minor, informational)
  *
  * EXAMPLES:
  * - Temp: 30°C, threshold: 24°C → deviation = 25% → HIGH
- * - Temp: 26°C, threshold: 24°C → deviation = 8.3% → LOW
+ * - Temp: 26°C, threshold: 24°C → deviation = 8.3% → MEDIUM
  */
 export function calculateSeverity(
   measuredValue: number,
@@ -70,8 +70,8 @@ export function calculateSeverity(
 
   const deviation = Math.abs(measuredValue - thresholdValue) / Math.abs(thresholdValue) * 100
 
-  if (deviation > 20) return 'HIGH'
-  if (deviation > 10) return 'MEDIUM'
+  if (deviation > 15) return 'HIGH'
+  if (deviation > 8) return 'MEDIUM'
   return 'LOW'
 }
 
@@ -94,24 +94,38 @@ export function calculateSeverity(
  * - Alert is already saved to DB, broadcast failure is non-critical
  */
 async function broadcastAlert(alert: Alert): Promise<void> {
-  try {
+  return new Promise<void>((resolve) => {
     const channel = supabaseAdmin.channel(`alerts:${alert.user_id}`)
 
-    await channel.send({
-      type: 'broadcast',
-      event: 'new_alert',
-      payload: alert,
-    })
+    const timeout = setTimeout(() => {
+      supabaseAdmin.removeChannel(channel)
+      console.warn('[Alert] Broadcast timed out for channel alerts:' + alert.user_id)
+      resolve()
+    }, 5000)
 
-    console.log(`[Alert] Broadcast to channel alerts:${alert.user_id}:`, {
-      type: alert.alert_type,
-      source: alert.source,
-      severity: alert.severity,
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        try {
+          await channel.send({
+            type: 'broadcast',
+            event: 'new_alert',
+            payload: alert,
+          })
+          console.log(`[Alert] Broadcast to channel alerts:${alert.user_id}:`, {
+            type: alert.alert_type,
+            source: alert.source,
+            severity: alert.severity,
+          })
+        } catch (error) {
+          console.error('[Alert] Failed to broadcast alert:', error)
+        } finally {
+          clearTimeout(timeout)
+          await supabaseAdmin.removeChannel(channel)
+          resolve()
+        }
+      }
     })
-  } catch (error) {
-    console.error('[Alert] Failed to broadcast alert:', error)
-    // Don't throw - alert is saved, broadcast failure is non-critical
-  }
+  })
 }
 
 /**

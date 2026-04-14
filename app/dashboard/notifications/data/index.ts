@@ -10,7 +10,6 @@ export const SOURCE_OPTIONS: SelectOption[] = [
   { label: 'All', value: 'all' },
   { label: 'Thermionix', value: 'THERMIONIX' },
   { label: 'SCADA', value: 'SCADA' },
-  { label: 'WeatherLink', value: 'WEATHERLINK' },
 ]
 
 export const SEVERITY_OPTIONS: SelectOption[] = [

@@ -45,7 +45,7 @@ function getAlertLink(alert: Alert): string {
   const measurementTime = new Date(alert.measurement_time)
   const now = new Date()
 
-  const fromISO = measurementTime.toISOString()
+  const fromISO = new Date(measurementTime.getTime() - 3 * 60 * 60 * 1000).toISOString()
   const toISO = now.toISOString()
 
   switch (alert.source) {

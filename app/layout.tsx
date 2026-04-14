@@ -96,7 +96,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+      <head suppressHydrationWarning>
         {/* Apply theme before React hydrates to prevent flash */}
         <script
           dangerouslySetInnerHTML={{

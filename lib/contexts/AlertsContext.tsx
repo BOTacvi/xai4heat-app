@@ -1,8 +1,66 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import toast from 'react-hot-toast'
 import type { Alert } from '@/lib/generated/prisma'
 import { createClient } from '@/lib/supabase/client'
+
+function getAlertLink(alert: Alert): string {
+  const measurementTime = new Date(alert.measurement_time)
+  const from = new Date(measurementTime.getTime() - 3 * 60 * 60 * 1000).toISOString()
+  const to = new Date().toISOString()
+  switch (alert.source) {
+    case 'THERMIONIX':
+      return `/dashboard/thermionix?apartment=${alert.device_id}&from=${from}&to=${to}`
+    case 'SCADA':
+      return `/dashboard/scada?lamela=${alert.location}&from=${from}&to=${to}`
+    case 'WEATHERLINK':
+      return `/dashboard/weatherlink?from=${from}&to=${to}`
+    default:
+      return '/dashboard/notifications'
+  }
+}
+
+function getAlertText(alert: Alert): string {
+  const location = alert.apartment_name || alert.location || 'Unknown'
+  const metric = alert.alert_type.includes('TEMP') ? 'Temperature'
+    : alert.alert_type.includes('PRESSURE') ? 'Pressure'
+    : alert.alert_type.includes('HUMIDITY') ? 'Humidity'
+    : 'CO2'
+  const direction = alert.alert_type.includes('HIGH') ? 'too high' : 'too low'
+  const cmp = alert.alert_type.includes('HIGH') ? '>' : '<'
+  return `${location}: ${metric} ${direction} (${alert.measured_value.toFixed(1)}${alert.unit} ${cmp} ${alert.threshold_value.toFixed(1)}${alert.unit})`
+}
+
+function showAlertToast(alert: Alert, markAsRead: (id: string) => Promise<void>) {
+  const link = getAlertLink(alert)
+  const text = getAlertText(alert)
+  toast.custom(
+    (t) => (
+      <div
+        onClick={() => { toast.dismiss(t.id); markAsRead(alert.id); window.location.href = link }}
+        style={{
+          cursor: 'pointer',
+          background: '#ef4444',
+          color: '#fff',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          maxWidth: '320px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          opacity: t.visible ? 1 : 0,
+          transition: 'opacity 0.2s',
+          fontSize: '14px',
+          lineHeight: '1.4',
+        }}
+      >
+        <div style={{ fontWeight: 600, marginBottom: 2 }}>New Alert</div>
+        <div>{text}</div>
+        <div style={{ fontSize: '11px', opacity: 0.8, marginTop: 4 }}>Click to view</div>
+      </div>
+    ),
+    { duration: 8000 }
+  )
+}
 
 type AlertsContextType = {
   alerts: Alert[]
@@ -16,7 +74,7 @@ type AlertsContextType = {
 
 const AlertsContext = createContext<AlertsContextType | undefined>(undefined)
 
-const POLL_INTERVAL_MS = 30000 // Poll every 30 seconds
+const POLL_INTERVAL_MS = 10000 // Poll every 10 seconds
 const MAX_ALERTS_TO_FETCH = 50 // Fetch max 50 recent alerts
 
 export function AlertsProvider({ children }: { children: React.ReactNode }) {
@@ -24,6 +82,8 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const knownAlertIdsRef = useRef<Set<string>>(new Set())
+  const isInitialFetchRef = useRef(true)
 
   // Fetch alerts from API
   const fetchAlerts = useCallback(async () => {
@@ -43,6 +103,18 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json()
 
       if (data.alerts) {
+        // Show toast for new unread alerts (skip on first load — those are pre-existing)
+        if (!isInitialFetchRef.current) {
+          const newUnread = (data.alerts as Alert[]).filter(
+            (a) => !a.is_read && !knownAlertIdsRef.current.has(a.id)
+          )
+          newUnread.forEach((a) => showAlertToast(a, markAsRead))
+        }
+
+        // Update known IDs and state
+        knownAlertIdsRef.current = new Set((data.alerts as Alert[]).map((a) => a.id))
+        isInitialFetchRef.current = false
+
         setAlerts(data.alerts)
         setUnreadCount(data.alerts.filter((a: Alert) => !a.is_read).length)
       }
@@ -71,6 +143,17 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [fetchAlerts])
 
+  // Refetch when user switches back to this tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAlerts()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [fetchAlerts])
+
   // Set up Supabase Realtime subscription for new alerts
   useEffect(() => {
     const supabase = createClient()
@@ -89,9 +172,9 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
         .channel(channelName)
         .on('broadcast', { event: 'new_alert' }, (payload) => {
           console.log('[AlertsContext] Received new alert broadcast:', payload)
-
-          // Add new alert to the list
           const newAlert = payload.payload as Alert
+          showAlertToast(newAlert, markAsRead)
+          knownAlertIdsRef.current.add(newAlert.id)
           setAlerts((prev) => [newAlert, ...prev].slice(0, MAX_ALERTS_TO_FETCH))
           setUnreadCount((prev) => prev + 1)
         })
@@ -165,7 +248,7 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch(`/api/alerts/${alertId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_acknowledged: true }),
+        body: JSON.stringify({ is_acknowledged: true, is_read: true }),
       })
 
       if (!res.ok) {

@@ -57,15 +57,20 @@ export default function NotificationsPage() {
   const [selectedAlerts, setSelectedAlerts] = useState<Set<string>>(new Set());
 
   const filteredAlerts = useMemo(() => {
-    return alerts.filter((alert) => {
-      if (filterStatus === "unread" && alert.is_read) return false;
-      if (filterStatus === "unacknowledged" && alert.is_acknowledged)
-        return false;
-      if (filterSource !== "all" && alert.source !== filterSource) return false;
-      if (filterSeverity !== "all" && alert.severity !== filterSeverity)
-        return false;
-      return true;
-    });
+    return alerts
+      .filter((alert) => {
+        if (filterStatus === "unread" && alert.is_read) return false;
+        if (filterStatus === "unacknowledged" && alert.is_acknowledged)
+          return false;
+        if (filterSource !== "all" && alert.source !== filterSource) return false;
+        if (filterSeverity !== "all" && alert.severity !== filterSeverity)
+          return false;
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
   }, [alerts, filterStatus, filterSource, filterSeverity]);
 
   // Only unacknowledged alerts can be selected for bulk acknowledge
